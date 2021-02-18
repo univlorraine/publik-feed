@@ -1,0 +1,22 @@
+app:
+    color: hsl(0, 80%, 80%)
+
+cas:
+    key: ${random.uuid}
+
+logging:
+    level:
+        com.vaadin.flow.server.communication.PushAtmosphereHandler: OFF
+        com.vaadin.flow.server.communication.PushHandler: OFF
+        fr.univlorraine.publikfeed.utils.security.AppRequestCache: OFF
+
+spring:
+    jpa:
+        open-in-view: false
+    messages:
+        basename: i18n/vaadin-messages, i18n/messages
+
+vaadin:
+    heartbeatInterval: 15
+    pnpm:
+        enable: true

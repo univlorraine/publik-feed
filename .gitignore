@@ -1,0 +1,15 @@
+# build
+node/
+node_modules/
+/target/
+webpack.generated.js
+
+# IDE
+.classpath
+.factorypath
+.project
+.settings
+.idea/
+
+# local dev
+/application.properties
