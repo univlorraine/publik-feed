@@ -42,7 +42,8 @@ public class Utils {
 		DateFormat gmtFormat = new SimpleDateFormat("yyyyMMddHHmmssZ");
 		TimeZone gmtTime = TimeZone.getTimeZone("GMT");
 		gmtFormat.setTimeZone(gmtTime);
-		String resultDateTime = gmtFormat.format(originalDateTime);
+		String resultDateTime = gmtFormat.format(java.sql.Timestamp.valueOf(originalDateTime));
+		log.info("{} -> {}", originalDateTime, resultDateTime);
 		return resultDateTime;
 	}
 

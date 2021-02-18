@@ -22,6 +22,7 @@ import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.i18n.LocaleChangeEvent;
 import com.vaadin.flow.i18n.LocaleChangeObserver;
@@ -68,6 +69,9 @@ public class MainView extends VerticalLayout implements HasDynamicTitle, HasHead
 	private final Column<ProcessHis> stateColumn = processGrid.addComponentColumn(ph -> getStateColumn(ph))
 		.setFlexGrow(1)
 		.setAutoWidth(true);
+	private final Column<ProcessHis> avancementColumn = processGrid.addComponentColumn(ph -> getAvancementColumn(ph))
+		.setFlexGrow(1)
+		.setAutoWidth(true);
 	private final Column<ProcessHis> datDebColumn = processGrid.addColumn(ph -> ph.getId().getDatDeb())
 		.setFlexGrow(1)
 		.setAutoWidth(true);
@@ -83,6 +87,24 @@ public class MainView extends VerticalLayout implements HasDynamicTitle, HasHead
 		initGrid();
 	}
 
+	private Component getAvancementColumn(ProcessHis ph) {
+		HorizontalLayout vl = new HorizontalLayout();
+		String etat = JobUtils.getStatus(ph.getId().getCodProcess());
+		if(etat!=null) {
+			Label label = new Label(ph.getNbObjTraite()+"/"+ph.getNbObjTotal());
+			label.getStyle().set("margin", "auto");
+			vl.add(label);
+			if(etat!=null && etat.equals(JobUtils.RUNNING) && ph.getNbObjTotal() != 0) {
+				ProgressBar progressBar = new ProgressBar();
+				progressBar.setValue(ph.getNbObjTraite() / ph.getNbObjTotal());
+				progressBar.setWidth("200px");
+
+				vl.add(progressBar);
+			}
+		}
+		return vl;
+	}
+	
 	private Component getStateColumn(ProcessHis ph) {
 		HorizontalLayout vl = new HorizontalLayout();
 		String etat = JobUtils.getStatus(ph.getId().getCodProcess());
