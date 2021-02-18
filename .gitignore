@@ -12,4 +12,6 @@ webpack.generated.js
 .idea/
 
 # local dev
-/application.properties
+**/application.properties
+
+*.log
