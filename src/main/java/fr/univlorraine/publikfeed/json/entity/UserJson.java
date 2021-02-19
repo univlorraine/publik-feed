@@ -22,6 +22,6 @@ public class UserJson {
 	private String email;
 	
 	@JsonProperty("gender")
-	private String gender;
+	private int gender;
 	
 }

@@ -25,7 +25,10 @@ public class UserHisService implements Serializable {
 	private transient UserHisRepository userHisRepository;
 
 
-
+	public UserHis save(final UserHis user) {
+		return userHisRepository.save(user);
+	}
+	
 	public Optional<UserHis> find(final String login) {
 		return userHisRepository.findById(login);
 	}
