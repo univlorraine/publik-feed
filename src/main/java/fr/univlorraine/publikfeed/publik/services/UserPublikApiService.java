@@ -122,7 +122,7 @@ public class UserPublikApiService {
 				upa = objectMapper.readValue(response.getBody(), UserPublikApi.class);
 				return upa;
 			} catch (Exception e) {
-				log.warn("Erreur lors du traitement du resultat de getUserByUsername pour "+user.getUsername(), e);
+				log.warn("Erreur lors du traitement du resultat de createUser pour "+user.getUsername(), e);
 			} 
 		}
 		return null;
@@ -137,7 +137,7 @@ public class UserPublikApiService {
 	 */
 	public UserPublikApi updateUser(UserJson user, String uuid) {
 
-		log.info("createUser :  {}", user.getUsername() );
+		log.info("updateUser :  {}", user.getUsername() );
 		// On récupère l'URL de l'api
 		String purl = apiUrl + USERS + "/{uuid}/";
 
@@ -159,41 +159,16 @@ public class UserPublikApiService {
 		//Si on a eu une réponse
 		if (response != null && response.getBody()!=null) {
 			ObjectMapper objectMapper = new ObjectMapper();
-			UserResponsePublikApi upar;
+			UserPublikApi upa;
 			try {
-				upar = objectMapper.readValue(response.getBody(), UserResponsePublikApi.class);
-
-				//Si la réponse contient des users
-				if(upar != null && upar.getResults()!=null && upar.getResults().size() == 1) {
-					return upar.getResults().get(0);
-				}
+				upa = objectMapper.readValue(response.getBody(), UserPublikApi.class);
+				return upa;
 			} catch (Exception e) {
-				log.warn("Erreur lors du traitement du resultat de getUserByUsername pour "+user.getUsername(), e);
+				log.warn("Erreur lors du traitement du resultat de updateUser pour "+user.getUsername(), e);
 			} 
 		}
 		return null;
 
-	}
-
-
-	private HttpEntity createRequestFromObject(Object obj) {
-		// Headers
-		HttpHeaders requestHeaders = createHeaders("application/json;charset=UTF-8");
-
-		ObjectMapper jsonmapper = new ObjectMapper();
-
-		// Request
-		HttpEntity<?> request;
-
-		try {
-			String jsonBody = jsonmapper.writeValueAsString(obj); 
-			log.info("jsonBody : {}",jsonBody);
-			request = new HttpEntity<>(jsonBody , requestHeaders);
-		} catch (JsonProcessingException e) {
-			log.error("Erreur au formatage de l'objet en JSON",e);
-			return null;
-		}
-		return request;
 	}
 
 	private HttpEntity createRequest(UserJson body) {

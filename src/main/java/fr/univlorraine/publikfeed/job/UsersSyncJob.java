@@ -1,12 +1,16 @@
 package fr.univlorraine.publikfeed.job;
 
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 import javax.annotation.Resource;
 
 import org.springframework.stereotype.Component;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fr.univlorraine.publikfeed.json.entity.UserJson;
 import fr.univlorraine.publikfeed.ldap.entity.PeopleLdap;
@@ -68,7 +72,7 @@ public class UsersSyncJob {
 			}
 
 			// Filtre ldap
-			String filtre = "(&(uid=dubois5)(eduPersonPrincipalName=*)(modifytimestamp>=" + dateLdap + "))";
+			String filtre = "(&(uid=dubois1)(eduPersonPrincipalName=*)(modifytimestamp>=" + dateLdap + "))";
 
 			// Execution du filtre ldap
 			try {
@@ -81,6 +85,9 @@ public class UsersSyncJob {
 					process.setNbObjTraite(0);
 					process.setNbObjErreur(0);
 
+					// Mapper JSON
+					ObjectMapper objectMapper = new ObjectMapper();
+					
 					// sauvegarde du nombre d'objets à traiter dans la base
 					process = processHisService.update(process);
 
@@ -116,10 +123,26 @@ public class UsersSyncJob {
 
 						// Si on a toujours aucune entrée en base
 						if(!ouh.isPresent()) {
+							log.info("Le compte {} doit etre créé dans Publik",p.getUid());
 							// créer le user dans Publik
 							UserPublikApi response = userPublikApiService.createUser(userLdap);
 							
-							// TODO check que ok et maj bdd
+							// Si la réponse contient des données
+							if(response != null) {
+								log.info("Le compte {} a été créé dans Publik",p.getUid());
+								UserHis newUser = new UserHis();
+								newUser.setUuid(response.getUuid());
+								newUser.setLogin(p.getUid());
+								try {
+									newUser.setData(objectMapper.writeValueAsString(userLdap));
+								} catch (JsonProcessingException e) {
+									log.warn("Probleme a la serialiazation JSON de :"+userLdap,e);
+								}
+								newUser.setDatMaj(LocalDateTime.now());
+								//Maj bdd
+								newUser = userHisService.save(newUser);
+								log.info("Le compte {} a été mis a jour dans la base",p.getUid());
+							}
 
 						}else {
 							boolean userToUpdate = true;
@@ -134,14 +157,33 @@ public class UsersSyncJob {
 							}
 							
 							if(userToUpdate) {
-								// maj le user dans Publik
-								UserPublikApi userPublik = userPublikApiService.updateUser(userLdap, ouh.get().getUuid());
 								
-								//TODO Maj du user dans la base 
+								log.info("Le compte {} doit etre mis a jour dans Publik",p.getUid());
+								// maj le user dans Publik
+								UserPublikApi response = userPublikApiService.updateUser(userLdap, ouh.get().getUuid());
+								
+								// Si la réponse contient des données
+								if(response != null) {
+									log.info("Le compte {} a été mis à jour dans Publik",p.getUid());
+									UserHis user = ouh.get();
+									try {
+										user.setData(objectMapper.writeValueAsString(userLdap));
+										
+									} catch (JsonProcessingException e) {
+										log.warn("Probleme a la serialiazation JSON de :"+userLdap,e);
+									}
+									user.setDatMaj(LocalDateTime.now());
+									//Maj bdd
+									user = userHisService.save(user);
+									log.info("Le compte {} a été mis a jour dans la base",p.getUid());
+								}
+							} else {
+								log.info("Le compte {} est déjà à jour dans Publik",p.getUid());
 							}
 						}
 
 						process.setNbObjTraite(process.getNbObjTraite() + 1);
+						
 						// sauvegarde du nombre d'objets traites dans la base
 						process = processHisService.update(process);
 					}
