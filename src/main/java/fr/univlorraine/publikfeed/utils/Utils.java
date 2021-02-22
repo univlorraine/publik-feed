@@ -31,11 +31,13 @@ public class Utils {
 	
 	public static final String PREFIX_ROLE_NOMINATIF = "RN_";
 
-	public static final String PREFIX_ROLE_PERSONNEL = "EMP_";
+	public static final String PREFIX_ROLE_PERSONNEL = "EMP";
 	
-	public static final String PREFIX_ROLE_ETUDIANT = "ETU_";
+	public static final String PREFIX_ROLE_ETUDIANT = "ETU";
 
 	public static final String ROLE_SEPARATOR = "_";
+
+	public static final String PREFIX_ROLE_BC = "BC";
 	
 
 

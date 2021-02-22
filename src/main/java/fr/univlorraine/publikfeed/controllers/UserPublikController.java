@@ -157,20 +157,20 @@ public class UserPublikController {
 
 		// Role Pers UL
 		if(StringUtils.hasText(p.getSupannEmpId())) {
-			String roleEmpName = Utils.PREFIX_ROLE_UNITAIRE + Utils.PREFIX_ROLE_PERSONNEL + p.getEduPersonPrincipalName();
+			String roleEmpName = Utils.PREFIX_ROLE_UNITAIRE + Utils.PREFIX_ROLE_PERSONNEL;
 			createOrUpdateRole(roleEmpName, p.getUid(), userUuid);
 		}
 
 		// Role Etu UL
 		if(StringUtils.hasText(p.getSupannEtuId())) {
-			String roleEtuName = Utils.PREFIX_ROLE_UNITAIRE + Utils.PREFIX_ROLE_ETUDIANT + p.getEduPersonPrincipalName();
+			String roleEtuName = Utils.PREFIX_ROLE_UNITAIRE + Utils.PREFIX_ROLE_ETUDIANT;
 			createOrUpdateRole(roleEtuName, p.getUid(), userUuid);
 		}
 
 		// Role par BC
 		if(p.getUdlCategories()!=null && p.getUdlCategories().length > 0) {
 			for(String bc : p.getUdlCategories()) {
-				String roleBcName = Utils.PREFIX_ROLE_UNITAIRE + bc + Utils.ROLE_SEPARATOR + p.getEduPersonPrincipalName();
+				String roleBcName = Utils.PREFIX_ROLE_UNITAIRE + Utils.PREFIX_ROLE_BC + Utils.ROLE_SEPARATOR + bc;
 				createOrUpdateRole(roleBcName, p.getUid(), userUuid);
 			}
 		}
