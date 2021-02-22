@@ -49,7 +49,7 @@ public class RolePublikApiService {
 
 		log.info("createRole :  {} shortId : {} ou : {}", role.getName(), role.getSlug(), role.getOu() );
 		// On récupère l'URL de l'api
-		String purl = apiUrl + ROLES + "/";
+		String purl = apiUrl + ROLES + "/?get_or_create=name";
 
 		//Body
 		Map<String,String> params = new HashMap<String,String>();
