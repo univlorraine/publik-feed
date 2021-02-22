@@ -39,10 +39,11 @@ public class Utils {
 		if (originalDateTime == null) {
 			return "19000101010101Z";
 		}
-		DateFormat gmtFormat = new SimpleDateFormat("yyyyMMddHHmmssZ");
+		DateFormat gmtFormat = new SimpleDateFormat("yyyyMMddHHmmss");
 		TimeZone gmtTime = TimeZone.getTimeZone("GMT");
 		gmtFormat.setTimeZone(gmtTime);
 		String resultDateTime = gmtFormat.format(java.sql.Timestamp.valueOf(originalDateTime));
+		resultDateTime += "Z";
 		log.info("{} -> {}", originalDateTime, resultDateTime);
 		return resultDateTime;
 	}

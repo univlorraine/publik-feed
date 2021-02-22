@@ -68,7 +68,8 @@ public class UsersSyncJob {
 
 			// calcul de la date evenement
 			if(lastExec!=null && lastExec.getDatFin()!=null) {
-				dateLdap = Utils.formatDateToLdap(lastExec.getDatFin());
+				// On prend la date de début comme date max des maj ldap ignorées
+				dateLdap = Utils.formatDateToLdap(lastExec.getId().getDatDeb());
 			}
 
 			// Filtre ldap
