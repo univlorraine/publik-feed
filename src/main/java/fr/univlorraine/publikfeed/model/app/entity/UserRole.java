@@ -5,39 +5,31 @@ import java.time.LocalDateTime;
 
 import javax.persistence.Column;
 import javax.persistence.Convert;
+import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
-import javax.persistence.Id;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import fr.univlorraine.publikfeed.converters.LocalDateTimePersistenceConverter;
-import lombok.Data;
 
 
 /**
- * The persistent class for the user_his database table.
+ * The persistent class for the user_role database table.
  * 
  */
 @SuppressWarnings("serial")
 @Entity
-@Table(name="user_his")
-@Data
-@NamedQuery(name="UserHis.findAll", query="SELECT u FROM UserHis u")
-public class UserHis implements Serializable {
+@Table(name="user_role")
+@NamedQuery(name="UserRole.findAll", query="SELECT ur FROM UserRole ur")
+public class UserRole implements Serializable {
 
 
-	@Id
-	@Column(name = "login")
-	private String login;
+	@EmbeddedId
+	private UserRolePK id;
 
-	@Column(name = "uuid")
-	private String uuid;
 
-	@Column(name = "data")
-	private String data;
-	
 	@Convert(converter = LocalDateTimePersistenceConverter.class)
 	@Column(name = "dat_maj")
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd@HH:mm:ss")
@@ -48,6 +40,33 @@ public class UserHis implements Serializable {
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd@HH:mm:ss")
 	private LocalDateTime datSup;
 
+	public UserRole() {
+		super();
+	}
 
+	public UserRolePK getId() {
+		return id;
+	}
+
+	public void setId(UserRolePK id) {
+		this.id = id;
+	}
+
+	public LocalDateTime getDatMaj() {
+		return datMaj;
+	}
+
+	public void setDatMaj(LocalDateTime datMaj) {
+		this.datMaj = datMaj;
+	}
+
+	public LocalDateTime getDatSup() {
+		return datSup;
+	}
+
+	public void setDatSup(LocalDateTime datSup) {
+		this.datSup = datSup;
+	}
+	
 
 }

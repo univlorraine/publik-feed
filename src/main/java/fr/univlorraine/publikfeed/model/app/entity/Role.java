@@ -22,21 +22,26 @@ import lombok.Data;
  */
 @SuppressWarnings("serial")
 @Entity
-@Table(name="user_his")
+@Table(name="role")
 @Data
-@NamedQuery(name="UserHis.findAll", query="SELECT u FROM UserHis u")
-public class UserHis implements Serializable {
-
+@NamedQuery(name="Role.findAll", query="SELECT r FROM Role r")
+public class Role implements Serializable {
 
 	@Id
-	@Column(name = "login")
-	private String login;
-
+	@Column(name = "id")
+	private String id;
+	
 	@Column(name = "uuid")
 	private String uuid;
+	
+	@Column(name = "slug")
+	private String slug;
+	
+	@Column(name = "ou")
+	private String ou;
 
-	@Column(name = "data")
-	private String data;
+	@Column(name = "hash")
+	private String hash;
 	
 	@Convert(converter = LocalDateTimePersistenceConverter.class)
 	@Column(name = "dat_maj")

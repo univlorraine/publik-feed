@@ -7,6 +7,9 @@ import java.util.Date;
 import java.util.TimeZone;
 
 import org.flywaydb.core.internal.util.StringUtils;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -23,6 +26,17 @@ import lombok.extern.slf4j.Slf4j;
  *         Méthodes Utiles */
 @Slf4j
 public class Utils {
+	
+	public static final String PREFIX_ROLE_UNITAIRE = "ZZU_";
+	
+	public static final String PREFIX_ROLE_NOMINATIF = "RN_";
+
+	public static final String PREFIX_ROLE_PERSONNEL = "EMP_";
+	
+	public static final String PREFIX_ROLE_ETUDIANT = "ETU_";
+
+	public static final String ROLE_SEPARATOR = "_";
+	
 
 
 	/** Formate la date pour LDAP */
@@ -77,6 +91,30 @@ public class Utils {
 		return null;
 	}
 
+	
+	
+	public static HttpEntity createRequest(Object body) {
+		// Headers
+		HttpHeaders requestHeaders = createHeaders(MediaType.APPLICATION_JSON.toString());
+
+		// Request
+		if(body ==null) {
+			return new HttpEntity<>(requestHeaders);
+		}
+		return new HttpEntity<>(body , requestHeaders);
+	}
+
+	public static HttpHeaders createHeaders(String contentType) {
+		HttpHeaders requestHeaders =new HttpHeaders();
+		//requestHeaders.setContentType(MediaType.APPLICATION_JSON);
+		requestHeaders.set("Content-Type", contentType);
+
+		//Si on a une api key pour appeler les WS
+		/*if(PropertyUtils.getWsSihamApiKey()!=null) {
+			requestHeaders.add(Utils.GRAVITEE_KEY_HEADER, PropertyUtils.getWsSihamApiKey());
+		}*/
+		return requestHeaders;
+	}
 	
 
 }

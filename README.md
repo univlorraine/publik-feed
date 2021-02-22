@@ -1,5 +1,7 @@
 # Modèle d'application Université de Lorraine avec Vaadin 14 et Spring Boot 2
 
+Cahier des charges : https://wikidocs.univ-lorraine.fr/pages/viewpage.action?pageId=323423721
+
 ## Prérequis
 - JDK 11+
 - Maven

@@ -22,6 +22,7 @@ public class PeopleLdap implements Serializable {
 	private String supannEtuId;
 	private String supannCivilite;
 	private String uid;
+	private String[] udlCategories;
 
 
 }

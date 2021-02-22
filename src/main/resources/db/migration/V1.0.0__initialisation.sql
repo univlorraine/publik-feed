@@ -28,6 +28,7 @@ CREATE TABLE user_his (
 	uuid varchar(50),
 	data JSON NOT NULL,
 	dat_maj timestamp NOT NULL,
+	dat_sup timestamp NULL,
 	CONSTRAINT user_his_pkey PRIMARY KEY (login)
 );
 
@@ -37,4 +38,28 @@ CREATE TABLE user_err_his (
   dat_err timestamp NOT NULL DEFAULT current_timestamp(),
   trace text DEFAULT NULL,
   CONSTRAINT user_err_his_pkey PRIMARY KEY (id)
-)
+);
+
+CREATE TABLE role (
+	id varchar(100) NOT NULL,
+	uuid varchar(50),
+	slug varchar(50) NULL,
+	ou varchar(50) NULL,
+	hash text DEFAULT NULL,
+	dat_maj timestamp NULL,
+	dat_sup timestamp NULL,
+	CONSTRAINT role_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE user_role (
+	role_id varchar(100) NOT NULL,
+	login varchar(20) NOT NULL,
+	dat_maj timestamp NULL,
+	dat_sup timestamp NULL,
+	CONSTRAINT role_user_pkey PRIMARY KEY (role_id, login)
+);
+
+
+
+
+

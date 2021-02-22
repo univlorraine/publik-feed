@@ -177,6 +177,7 @@ public class LdapPeopleServiceImpl implements LdapGenericService<PeopleLdap> {
 		addAttributToContext("supannEtuId", o.getSupannEtuId(), context);
 		addAttributToContext("supannCivilite", o.getSupannCivilite(), context);
 		addAttributToContext("uid", o.getUid(), context);
+		addAttributToContext("udlCategories", o.getUdlCategories(), context);
 	}
 
 	@Override
@@ -200,6 +201,7 @@ public class LdapPeopleServiceImpl implements LdapGenericService<PeopleLdap> {
 			o.setSupannEtuId(context.getStringAttribute("supannEtuId"));
 			o.setSupannCivilite(context.getStringAttribute("supannCivilite"));
 			o.setUid(context.getStringAttribute("uid"));
+			o.setUdlCategories(context.getStringAttributes("udlCategories"));
 			return o;
 		}
 	}

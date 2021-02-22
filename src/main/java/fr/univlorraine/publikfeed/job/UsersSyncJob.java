@@ -1,30 +1,20 @@
 package fr.univlorraine.publikfeed.job;
 
 
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 import javax.annotation.Resource;
 
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import fr.univlorraine.publikfeed.controllers.UserPublikController;
-import fr.univlorraine.publikfeed.json.entity.UserJson;
 import fr.univlorraine.publikfeed.ldap.entity.PeopleLdap;
 import fr.univlorraine.publikfeed.ldap.exceptions.LdapServiceException;
 import fr.univlorraine.publikfeed.ldap.services.LdapGenericService;
 import fr.univlorraine.publikfeed.model.app.entity.ProcessHis;
 import fr.univlorraine.publikfeed.model.app.entity.UserErrHis;
-import fr.univlorraine.publikfeed.model.app.entity.UserHis;
 import fr.univlorraine.publikfeed.model.app.services.ProcessHisService;
 import fr.univlorraine.publikfeed.model.app.services.UserErrHisService;
-import fr.univlorraine.publikfeed.model.app.services.UserHisService;
-import fr.univlorraine.publikfeed.publik.entity.UserPublikApi;
-import fr.univlorraine.publikfeed.publik.services.UserPublikApiService;
 import fr.univlorraine.publikfeed.utils.JobUtils;
 import fr.univlorraine.publikfeed.utils.Utils;
 import lombok.extern.slf4j.Slf4j;
@@ -107,6 +97,8 @@ public class UsersSyncJob {
 							process = processHisService.update(process);
 
 						}catch (Exception e) {
+							// Incrément du nombre d'objet traités
+							process.setNbObjTraite(process.getNbObjTraite() + 1);
 							// Incrément du compteur d'erreur
 							process.setNbObjErreur(process.getNbObjErreur() + 1);
 							// sauvegarde du nombre d'objets traites dans la base

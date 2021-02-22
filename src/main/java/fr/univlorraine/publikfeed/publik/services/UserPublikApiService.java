@@ -4,22 +4,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.support.BasicAuthenticationInterceptor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fr.univlorraine.publikfeed.json.entity.UserJson;
-import fr.univlorraine.publikfeed.publik.entity.CreateUserResponsePublikApi;
 import fr.univlorraine.publikfeed.publik.entity.UserPublikApi;
 import fr.univlorraine.publikfeed.publik.entity.UserResponsePublikApi;
+import fr.univlorraine.publikfeed.utils.Utils;
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -62,7 +58,7 @@ public class UserPublikApiService {
 
 		rt.getInterceptors().add(new BasicAuthenticationInterceptor(apiUsername, apiPassword));
 		//Appelle du WS qui retourne le user publik
-		ResponseEntity<String> response = rt.exchange(purl, HttpMethod.GET, createRequest(null), String.class, params);
+		ResponseEntity<String> response = rt.exchange(purl, HttpMethod.GET, Utils.createRequest(null), String.class, params);
 
 		log.info("Publik Response :" + response);
 
@@ -110,7 +106,7 @@ public class UserPublikApiService {
 		//Appelle du WS qui créé le user Publik
 		@SuppressWarnings("unchecked")
 		//ResponseEntity<String> response =  (ResponseEntity<String>) rt.postForObject(purl, createRequestFromObject(user),ResponseEntity.class);
-		ResponseEntity<String> response = rt.exchange(purl, HttpMethod.POST, createRequest(user), String.class, params);
+		ResponseEntity<String> response = rt.exchange(purl, HttpMethod.POST, Utils.createRequest(user), String.class, params);
 
 		log.info("Publik Response :" + response);
 
@@ -152,7 +148,7 @@ public class UserPublikApiService {
 
 		rt.getInterceptors().add(new BasicAuthenticationInterceptor(apiUsername, apiPassword));
 		//Appelle du WS qui retourne le user publik
-		ResponseEntity<String> response = rt.exchange(purl, HttpMethod.PUT, createRequest(user), String.class, params);
+		ResponseEntity<String> response = rt.exchange(purl, HttpMethod.PUT, Utils.createRequest(user), String.class, params);
 
 		log.info("Publik Response :" + response);
 
@@ -171,27 +167,5 @@ public class UserPublikApiService {
 
 	}
 
-	private HttpEntity createRequest(UserJson body) {
-		// Headers
-		HttpHeaders requestHeaders = createHeaders(MediaType.APPLICATION_JSON.toString());
-
-		// Request
-		if(body ==null) {
-			return new HttpEntity<>(requestHeaders);
-		}
-		return new HttpEntity<>(body , requestHeaders);
-	}
-
-	private HttpHeaders createHeaders(String contentType) {
-		HttpHeaders requestHeaders =new HttpHeaders();
-		//requestHeaders.setContentType(MediaType.APPLICATION_JSON);
-		requestHeaders.set("Content-Type", contentType);
-
-		//Si on a une api key pour appeler les WS
-		/*if(PropertyUtils.getWsSihamApiKey()!=null) {
-			requestHeaders.add(Utils.GRAVITEE_KEY_HEADER, PropertyUtils.getWsSihamApiKey());
-		}*/
-		return requestHeaders;
-	}
 
 }

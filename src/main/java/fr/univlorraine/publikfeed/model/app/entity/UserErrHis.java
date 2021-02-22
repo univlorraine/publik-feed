@@ -22,12 +22,12 @@ import lombok.Data;
  * The persistent class for the user_his database table.
  * 
  */
+@SuppressWarnings("serial")
 @Entity
 @Table(name="user_err_his")
 @Data
 @NamedQuery(name="UserErrHis.findAll", query="SELECT u FROM UserErrHis u")
 public class UserErrHis implements Serializable {
-	private static final long serialVersionUID = 1L;
 
 
 	@Id

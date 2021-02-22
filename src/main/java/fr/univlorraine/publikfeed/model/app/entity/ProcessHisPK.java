@@ -15,10 +15,9 @@ import fr.univlorraine.publikfeed.converters.LocalDateTimePersistenceConverter;
  * The primary key class for the process_his database table.
  * 
  */
+@SuppressWarnings("serial")
 @Embeddable
 public class ProcessHisPK implements Serializable {
-	//default serial version id, required for serializable classes.
-	private static final long serialVersionUID = 1L;
 
 	@Column(name="cod_process")
 	private String codProcess;

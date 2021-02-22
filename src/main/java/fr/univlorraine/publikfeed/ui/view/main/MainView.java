@@ -72,6 +72,9 @@ public class MainView extends VerticalLayout implements HasDynamicTitle, HasHead
 	private final Column<ProcessHis> avancementColumn = processGrid.addComponentColumn(ph -> getAvancementColumn(ph))
 		.setFlexGrow(1)
 		.setAutoWidth(true);
+	private final Column<ProcessHis> anomalieColumn = processGrid.addColumn(ph -> ph.getNbObjErreur())
+		.setFlexGrow(1)
+		.setAutoWidth(true);
 	private final Column<ProcessHis> datDebColumn = processGrid.addColumn(ph -> ph.getId().getDatDeb())
 		.setFlexGrow(1)
 		.setAutoWidth(true);
@@ -96,9 +99,10 @@ public class MainView extends VerticalLayout implements HasDynamicTitle, HasHead
 			vl.add(label);
 			if(etat!=null && etat.equals(JobUtils.RUNNING) && ph.getNbObjTotal() != 0) {
 				ProgressBar progressBar = new ProgressBar();
-				progressBar.setValue(ph.getNbObjTraite() / ph.getNbObjTotal());
+				double ratio = ph.getNbObjTraite() * 1.0 / ph.getNbObjTotal();
+				progressBar.setValue(ratio);
 				progressBar.setWidth("200px");
-
+				progressBar.setHeight("20px");
 				vl.add(progressBar);
 			}
 		}

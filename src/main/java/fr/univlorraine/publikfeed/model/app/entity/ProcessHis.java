@@ -19,11 +19,11 @@ import fr.univlorraine.publikfeed.converters.LocalDateTimePersistenceConverter;
  * The persistent class for the process_his database table.
  * 
  */
+@SuppressWarnings("serial")
 @Entity
 @Table(name="process_his")
 @NamedQuery(name="ProcessHis.findAll", query="SELECT r FROM ProcessHis r")
 public class ProcessHis implements Serializable {
-	private static final long serialVersionUID = 1L;
 
 
 	@EmbeddedId
