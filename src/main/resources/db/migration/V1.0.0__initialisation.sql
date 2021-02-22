@@ -30,3 +30,11 @@ CREATE TABLE user_his (
 	dat_maj timestamp NOT NULL,
 	CONSTRAINT user_his_pkey PRIMARY KEY (login)
 );
+
+CREATE TABLE user_err_his (
+  id int(11) NOT NULL AUTO_INCREMENT,
+  login varchar(20) NOT NULL,
+  dat_err timestamp NOT NULL DEFAULT current_timestamp(),
+  trace text DEFAULT NULL,
+  CONSTRAINT user_err_his_pkey PRIMARY KEY (id)
+)
