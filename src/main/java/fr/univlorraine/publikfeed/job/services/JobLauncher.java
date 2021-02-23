@@ -4,7 +4,7 @@ package fr.univlorraine.publikfeed.job.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import fr.univlorraine.publikfeed.job.RolesSupprJob;
+import fr.univlorraine.publikfeed.job.RolesUnitairesSupprJob;
 import fr.univlorraine.publikfeed.job.UsersSyncJob;
 import fr.univlorraine.publikfeed.utils.JobUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +18,7 @@ public class JobLauncher {
 	private UsersSyncJob usersSyncJob;
 	
 	@Autowired
-	private RolesSupprJob supprRoleJob;
+	private RolesUnitairesSupprJob supprRoleUnitaireJob;
 
 
 	public void launch(String jobName) {
@@ -26,8 +26,8 @@ public class JobLauncher {
 			case JobUtils.SYNC_USERS_JOB : 
 				usersSyncJob.syncUsers();
 				break;
-			case JobUtils.SUPPR_ROLES_JOB : 
-				supprRoleJob.deleteAllRoles();
+			case JobUtils.SUPPR_ROLES_UNITAIRES_JOB : 
+				supprRoleUnitaireJob.deleteAllRoles();
 				break;
 		}
 	}

@@ -16,9 +16,9 @@ import fr.univlorraine.publikfeed.utils.JobUtils;
 import fr.univlorraine.publikfeed.utils.Utils;
 import lombok.extern.slf4j.Slf4j;
 
-@Component(value="roleSupprJob")
+@Component(value="roleUnitSupprJob")
 @Slf4j
-public class RolesSupprJob {
+public class RolesUnitairesSupprJob {
 
 	@Resource
 	private RolePublikController rolePublikController;
@@ -33,23 +33,20 @@ public class RolesSupprJob {
 	public void deleteAllRoles() {
 
 		log.info("###################################################");
-		log.info("       START JOB "+JobUtils.SUPPR_ROLES_JOB);
+		log.info("       START JOB "+JobUtils.SUPPR_ROLES_UNITAIRES_JOB);
 		log.info("###################################################");
 
 
 		// Vérifier que le job n'est pas déjà en cours
-		if (!JobUtils.tryToStart(JobUtils.SUPPR_ROLES_JOB)) {
+		if (!JobUtils.tryToStart(JobUtils.SUPPR_ROLES_UNITAIRES_JOB)) {
 			log.error("JOB ALREADY RUNNING");
 		} else {
 
 			// Ajout timestamp du start dans la base
-			ProcessHis process = processHisService.getNewProcess(JobUtils.SUPPR_ROLES_JOB);
-
-			// récupération du dernier ProcessHis pour le job avec date de fin non null
-			ProcessHis lastExec = processHisService.getLastSuccessExc(JobUtils.SUPPR_ROLES_JOB);
+			ProcessHis process = processHisService.getNewProcess(JobUtils.SUPPR_ROLES_UNITAIRES_JOB);
 
 			// Recuperation des roles
-			List<RolePublikApi> lroles= rolePublikController.getAllRoles();
+			List<RolePublikApi> lroles= rolePublikController.getAllRoles(Utils.PREFIX_ROLE_UNITAIRE);
 
 			if(lroles!=null && !lroles.isEmpty()) {
 				log.info("{} roles présents dans Publik", lroles.size());
@@ -64,7 +61,7 @@ public class RolesSupprJob {
 				for(RolePublikApi r : lroles) {
 
 					try {
-						if(r!=null && r.getName()!=null && r.getName().startsWith(Utils.PREFIX_ROLE_UNITAIRE)) {
+						if(r!=null && r.getUuid()!=null) {
 							//suppression du role
 							rolePublikApiService.deleteRole(r.getUuid());
 							// Incrément du nombre d'objet traités
@@ -91,11 +88,11 @@ public class RolesSupprJob {
 
 
 			// Notifier l'arret du job
-			JobUtils.stop(JobUtils.SUPPR_ROLES_JOB);
+			JobUtils.stop(JobUtils.SUPPR_ROLES_UNITAIRES_JOB);
 
 		}
 		log.info("###################################################");
-		log.info("       END JOB "+JobUtils.SUPPR_ROLES_JOB);
+		log.info("       END JOB "+JobUtils.SUPPR_ROLES_UNITAIRES_JOB);
 		log.info("###################################################");
 
 	}
