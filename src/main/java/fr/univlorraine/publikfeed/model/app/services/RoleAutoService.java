@@ -8,10 +8,10 @@ import javax.annotation.Resource;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import fr.univlorraine.publikfeed.model.app.entity.Role;
+import fr.univlorraine.publikfeed.model.app.entity.RoleAuto;
 import fr.univlorraine.publikfeed.model.app.entity.UserRole;
 import fr.univlorraine.publikfeed.model.app.entity.UserRolePK;
-import fr.univlorraine.publikfeed.model.app.repository.RoleRepository;
+import fr.univlorraine.publikfeed.model.app.repository.RoleAutoRepository;
 import fr.univlorraine.publikfeed.model.app.repository.UserRoleRepository;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -21,22 +21,22 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 @Slf4j
 @SuppressWarnings("serial")
-public class RoleService implements Serializable {
+public class RoleAutoService implements Serializable {
 
 	/* Injections */
 	@Resource
-	private transient RoleRepository roleRepository;
+	private transient RoleAutoRepository roleAutoRepository;
 	
 	@Resource
 	private transient UserRoleRepository userRoleRepository;
 
 
-	public Role saveRole(final Role role) {
-		return roleRepository.save(role);
+	public RoleAuto saveRole(final RoleAuto role) {
+		return roleAutoRepository.save(role);
 	}
 	
-	public Optional<Role> findRole(final String id) {
-		return roleRepository.findById(id);
+	public Optional<RoleAuto> findRole(final String id) {
+		return roleAutoRepository.findById(id);
 	}
 
 	public Optional<UserRole> findUserRole(String login, String roleId) {

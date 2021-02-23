@@ -22,10 +22,10 @@ import lombok.Data;
  */
 @SuppressWarnings("serial")
 @Entity
-@Table(name="role")
+@Table(name="role_auto")
 @Data
-@NamedQuery(name="Role.findAll", query="SELECT r FROM Role r")
-public class Role implements Serializable {
+@NamedQuery(name="RoleAuto.findAll", query="SELECT r FROM RoleAuto r")
+public class RoleAuto implements Serializable {
 
 	@Id
 	@Column(name = "id")

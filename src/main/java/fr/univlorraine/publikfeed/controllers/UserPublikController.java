@@ -14,11 +14,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.univlorraine.publikfeed.json.entity.RoleJson;
 import fr.univlorraine.publikfeed.json.entity.UserJson;
 import fr.univlorraine.publikfeed.ldap.entity.PeopleLdap;
-import fr.univlorraine.publikfeed.model.app.entity.Role;
+import fr.univlorraine.publikfeed.model.app.entity.RoleAuto;
 import fr.univlorraine.publikfeed.model.app.entity.UserHis;
 import fr.univlorraine.publikfeed.model.app.entity.UserRole;
 import fr.univlorraine.publikfeed.model.app.entity.UserRolePK;
-import fr.univlorraine.publikfeed.model.app.services.RoleService;
+import fr.univlorraine.publikfeed.model.app.services.RoleAutoService;
 import fr.univlorraine.publikfeed.model.app.services.UserHisService;
 import fr.univlorraine.publikfeed.publik.entity.AddUserToRoleResponsePublikApi;
 import fr.univlorraine.publikfeed.publik.entity.RolePublikApi;
@@ -37,7 +37,7 @@ public class UserPublikController {
 	private UserHisService userHisService;
 
 	@Resource
-	private RoleService roleService;
+	private RoleAutoService roleService;
 
 	@Resource
 	private UserPublikApiService userPublikApiService;
@@ -182,8 +182,8 @@ public class UserPublikController {
 
 		boolean just_created = false;
 		// Recherche du role dans la base
-		Optional<Role> optRole = roleService.findRole(roleName);
-		Role role = null;
+		Optional<RoleAuto> optRole = roleService.findRole(roleName);
+		RoleAuto role = null;
 		
 		// Si le role n'existe pas ou plus
 		if(!optRole.isPresent() || optRole.get().getDatSup() != null) {
@@ -194,7 +194,7 @@ public class UserPublikController {
 			just_created = true;
 			
 			// maj BDD
-			role = new Role();
+			role = new RoleAuto();
 			role.setId(roleName);
 			role.setUuid(rolePublik.getUuid());
 			role.setSlug(rolePublik.getSlug());
