@@ -59,20 +59,20 @@ CREATE TABLE user_role (
 	CONSTRAINT role_user_pkey PRIMARY KEY (role_id, login)
 );
 
--- CREATE TABLE role_manuel (
--- 	id varchar(100) NOT NULL,
--- 	libelle text NULL,
--- 	logins text NULL,
--- 	filtre varchar(100) NULL,
--- 	uuid varchar(50),
--- 	slug varchar(50) NULL,
--- 	ou varchar(50) NULL,
--- 	hash text DEFAULT NULL,
--- 	dat_maj timestamp NULL,
--- 	dat_maj_publik timestamp NULL,
--- 	dat_sup timestamp NULL,
--- 	CONSTRAINT groupe_pkey PRIMARY KEY (id)
--- );
+ CREATE TABLE role_manuel (
+ 	id varchar(100) NOT NULL,
+ 	libelle text NULL,
+ 	logins text NULL,
+ 	filtre varchar(100) NULL,
+ 	uuid varchar(50),
+ 	slug varchar(50) NULL,
+ 	ou varchar(50) NULL,
+ 	hash text DEFAULT NULL,
+ 	dat_maj timestamp NULL,
+ 	dat_maj_publik timestamp NULL,
+ 	dat_sup timestamp NULL,
+ 	CONSTRAINT groupe_pkey PRIMARY KEY (id)
+ );
 
 
 
