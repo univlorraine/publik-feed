@@ -67,7 +67,7 @@ public class UsersSyncJob {
 			}
 
 			// Filtre ldap
-			String filtre = "(&(uid=duboi*)(eduPersonPrincipalName=*)(modifytimestamp>=" + dateLdap + "))";
+			String filtre = "(&(uid=dubois3*)(eduPersonPrincipalName=*)(modifytimestamp>=" + dateLdap + "))";
 
 			// Execution du filtre ldap
 			try {

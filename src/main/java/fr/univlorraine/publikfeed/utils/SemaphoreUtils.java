@@ -10,6 +10,9 @@ public class SemaphoreUtils {
 
 	/** Sémaphore pour les jobs start et stop des routes initiales */
 	public static final Semaphore syncUserJob = new Semaphore(1);
+	
+	/** Sémaphore pour les jobs start et stop des routes initiales */
+	public static final Semaphore supprRoleJob = new Semaphore(1);
 
 
 	/** Map de liaison Semaphore / Job */
@@ -18,6 +21,7 @@ public class SemaphoreUtils {
 	
 	static {
 		semaphoreJobMap.put(JobUtils.SYNC_USERS_JOB, syncUserJob);
+		semaphoreJobMap.put(JobUtils.SUPPR_ROLES_JOB, supprRoleJob);
 		
 	}
 

@@ -3,6 +3,7 @@ package fr.univlorraine.publikfeed.publik.services;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.flywaydb.core.internal.util.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ import fr.univlorraine.publikfeed.json.entity.RoleJson;
 import fr.univlorraine.publikfeed.json.entity.UserJson;
 import fr.univlorraine.publikfeed.publik.entity.AddUserToRoleResponsePublikApi;
 import fr.univlorraine.publikfeed.publik.entity.RolePublikApi;
+import fr.univlorraine.publikfeed.publik.entity.RoleResponsePublikApi;
 import fr.univlorraine.publikfeed.publik.entity.UserPublikApi;
 import fr.univlorraine.publikfeed.utils.Utils;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +42,52 @@ public class RolePublikApiService {
 
 
 
+	/**
+	 * Créer un role dans Publik
+	 * @param role
+	 * @return
+	 */
+	public RoleResponsePublikApi getRoles(String url ) {
+
+		log.info("getAllRoles ...");
+		
+		if(!StringUtils.hasText(url)) {
+			// On récupère l'URL de l'api
+			url = apiUrl + ROLES + "/";
+		}
+		
+		//Body
+		Map<String,String> params = new HashMap<String,String>();
+
+		RestTemplate rt = new RestTemplate();
+
+		log.info("call url : " + url );
+
+		rt.getInterceptors().add(new BasicAuthenticationInterceptor(apiUsername, apiPassword));
+
+		//Appelle du WS qui créé le role Publik
+		@SuppressWarnings("unchecked")
+		ResponseEntity<String> response = rt.exchange(url, HttpMethod.GET, Utils.createRequest(null), String.class, params);
+
+		log.info("Publik Response :" + response);
+
+		//Si on a eu une réponse
+		if (response != null && response.getBody()!=null) {
+			ObjectMapper objectMapper = new ObjectMapper();
+			RoleResponsePublikApi rpa;
+			try {
+				rpa = objectMapper.readValue(response.getBody(), RoleResponsePublikApi.class);
+				return rpa;
+			} catch (Exception e) {
+				log.warn("Erreur lors du traitement getAllRoles", e);
+			} 
+		}
+		return null;
+
+	}
+	
+	
+	
 	/**
 	 * Créer un role dans Publik
 	 * @param role
@@ -125,6 +173,40 @@ public class RolePublikApiService {
 		}
 		return null;
 
+	}
+
+	/**
+	 * Supprime le role dans Publib à partir de l'uuid en parametre
+	 * @param uuid
+	 */
+	public void deleteRole(String uuid) {
+		log.info("Suppression role Publik {}", uuid);
+		
+		// On calcule l'URL de l'api
+		String url = apiUrl + ROLES + "/" + uuid + "/";
+		
+		
+		//Body
+		Map<String,String> params = new HashMap<String,String>();
+
+		RestTemplate rt = new RestTemplate();
+
+		log.info("call url : " + url );
+
+		rt.getInterceptors().add(new BasicAuthenticationInterceptor(apiUsername, apiPassword));
+
+		//Appelle du WS qui créé le role Publik
+		@SuppressWarnings("unchecked")
+		ResponseEntity<String> response = rt.exchange(url, HttpMethod.DELETE, Utils.createRequest(null), String.class, params);
+
+		log.info("Publik Response :" + response);
+
+		//Si on a eu une réponse
+		if (response != null && response.getBody()!=null) {
+			log.info("Suppression role reponse : {}", response.getStatusCode());
+		}
+
+		
 	}
 
 	
