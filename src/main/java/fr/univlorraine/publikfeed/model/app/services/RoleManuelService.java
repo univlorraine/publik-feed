@@ -1,6 +1,7 @@
 package fr.univlorraine.publikfeed.model.app.services;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Optional;
 
 import javax.annotation.Resource;
@@ -33,6 +34,10 @@ public class RoleManuelService implements Serializable {
 	
 	public Optional<RoleManuel> findRole(final String id) {
 		return roleManuelRepository.findById(id);
+	}
+
+	public List<RoleManuel> findActive() {
+		return roleManuelRepository.findByDatSupNotNull();
 	}
 
 

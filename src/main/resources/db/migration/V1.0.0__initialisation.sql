@@ -74,5 +74,6 @@ CREATE TABLE user_role (
  	CONSTRAINT groupe_pkey PRIMARY KEY (id)
  );
 
+ -- INSERT INTO `role_manuel` (`id`, `libelle`, `logins`, `filtre`, `uuid`, `slug`, `ou`, `hash`, `dat_maj`, `dat_maj_publik`, `dat_sup`) VALUES ('SOME_GUYS', 'test de role manuel', 'dubois1', '(supannEntiteAffectation=*G1NA-)', NULL, NULL, NULL, NULL, '2021-02-23 17:57:20', NULL, NULL); 
 
 
