@@ -9,6 +9,7 @@ import java.util.List;
 import javax.annotation.Resource;
 
 import org.flywaydb.core.internal.util.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import fr.univlorraine.publikfeed.json.entity.ListUuidJson;
@@ -32,6 +33,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class RolesManuelsSyncJob {
 
+	@Value("${publik.default.user.role.vide}")
+	private transient String defaultUsers;
+	
 	@Resource
 	private ProcessHisService processHisService;
 
@@ -113,8 +117,26 @@ public class RolesManuelsSyncJob {
 								}
 							}
 						}
-
 						
+						// Si la liste est vide et qu'on a des user par defaut
+						if(uuids.isEmpty() && defaultUsers != null) {
+								log.info("Ajout users par defaut dans le groupe {} vide", role.getId());
+								// ajout admins par defaut
+								String[] tlogins = defaultUsers.split(",");
+								if(tlogins!=null && tlogins.length>0) {
+									for(String login : tlogins) {
+										//recuperation du uuid
+										String uuid = userHisService.getUuidFromLogin(login);
+										// Si on a un uuid et qu'il est pas déjà dans la liste
+										if(uuid != null && !uuids.contains(uuid)) {
+											// Ajout du login à la liste
+											uuids.add(uuid);
+										} else {
+											log.info("Uuid de {} non trouve ou deja dans la liste, uuid : ", login, uuid);
+										}
+									}
+								}
+						}
 						// On trie de la liste pour avoir un hash identique si la liste contient les même éléments
 						Collections.sort(uuids);
 						
