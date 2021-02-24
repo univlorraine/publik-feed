@@ -1,6 +1,8 @@
 package fr.univlorraine.publikfeed.controllers;
 
 import java.time.LocalDateTime;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Optional;
 
 import javax.annotation.Resource;
@@ -37,18 +39,18 @@ public class UserPublikController {
 	private UserHisService userHisService;
 
 	@Resource
-	private RoleAutoService roleService;
+	private RoleAutoService roleAutoService;
 
 	@Resource
 	private UserPublikApiService userPublikApiService;
 
 	@Resource
 	private RolePublikApiService rolePublikApiService;
-	
+
 	public void createOrUpdateUser(PeopleLdap p) throws Exception {
 
 		String userUuid=null;
-		
+
 		// Mapper JSON
 		ObjectMapper objectMapper = new ObjectMapper();
 
@@ -105,7 +107,7 @@ public class UserPublikController {
 			}
 
 		} else {
-			
+
 			userUuid = ouh.get().getUuid();
 			boolean userToUpdate = true;
 
@@ -150,21 +152,25 @@ public class UserPublikController {
 	}
 
 	public void checkRolesUnitaires(PeopleLdap p,  String userUuid) throws Exception {
+		List<String> listeRole = new LinkedList<String> ();
 
 		// Role unitaire nominatif
 		String roleName = Utils.PREFIX_ROLE_UNITAIRE + Utils.PREFIX_ROLE_NOMINATIF + p.getEduPersonPrincipalName();
 		createOrUpdateRole(roleName, p.getUid(), userUuid);
+		listeRole.add(roleName);
 
 		// Role Pers UL
 		if(StringUtils.hasText(p.getSupannEmpId())) {
 			String roleEmpName = Utils.PREFIX_ROLE_UNITAIRE + Utils.PREFIX_ROLE_PERSONNEL;
 			createOrUpdateRole(roleEmpName, p.getUid(), userUuid);
+			listeRole.add(roleEmpName);
 		}
 
 		// Role Etu UL
 		if(StringUtils.hasText(p.getSupannEtuId())) {
 			String roleEtuName = Utils.PREFIX_ROLE_UNITAIRE + Utils.PREFIX_ROLE_ETUDIANT;
 			createOrUpdateRole(roleEtuName, p.getUid(), userUuid);
+			listeRole.add(roleEtuName);
 		}
 
 		// Role par BC
@@ -172,9 +178,42 @@ public class UserPublikController {
 			for(String bc : p.getUdlCategories()) {
 				String roleBcName = Utils.PREFIX_ROLE_UNITAIRE + Utils.PREFIX_ROLE_BC + Utils.ROLE_SEPARATOR + bc;
 				createOrUpdateRole(roleBcName, p.getUid(), userUuid);
+				listeRole.add(roleBcName);
 			}
 		}
 
+		// Récupération de tous les roles de la personne dans la base
+		List<UserRole> listeUserRole = roleAutoService.findRolesFromLogin(p.getUid());
+		if(listeUserRole !=null && !listeUserRole.isEmpty()) {
+			log.info("{} possede {} roles unitaires dans la base", p.getUid(), listeUserRole.size());
+			for(UserRole ur : listeUserRole) {
+				// Si le role est actif et qu'il n'est pas dans la liste
+				if(ur!=null && ur.getDatSup() == null && !listeRole.contains(ur.getId().getRoleId())) {
+
+					log.info("{} ne possede plus le role {}. Il doit etre supprime de Publik", p.getUid(), ur.getId().getRoleId());
+
+					// Recuperation du role pour avoir son uuid
+					Optional<RoleAuto> or = roleAutoService.findRole(ur.getId().getRoleId());
+
+					// Si on a bien récupéré le role et qu'on a un uuid publik associé
+					if(or.isPresent() && or.get().getUuid() != null) {
+
+						// Suppression de la personne des roles Publik
+						if(rolePublikApiService.deleteUserFromRole(userUuid, or.get().getUuid())) {
+
+							log.info(" {} supprimee du role {} ({}) dans Publik", p.getUid(), ur.getId().getRoleId(), or.get().getUuid());
+
+							// Maj bdd
+							ur.setDatMaj(LocalDateTime.now());
+							ur.setDatSup(LocalDateTime.now());
+							ur = roleAutoService.saveUserRole(ur);
+
+							log.info("userRole {} - {} mis a jour dans la base", ur.getId().getLogin(), ur.getId().getRoleId());
+						}
+					}
+				}
+			}
+		}
 
 	}
 
@@ -182,9 +221,9 @@ public class UserPublikController {
 
 		boolean just_created = false;
 		// Recherche du role dans la base
-		Optional<RoleAuto> optRole = roleService.findRole(roleName);
+		Optional<RoleAuto> optRole = roleAutoService.findRole(roleName);
 		RoleAuto role = null;
-		
+
 		// Si le role n'existe pas ou plus
 		if(!optRole.isPresent() || optRole.get().getDatSup() != null) {
 			// Creation du role dans Publik
@@ -192,7 +231,7 @@ public class UserPublikController {
 			rj.setName(roleName);
 			RolePublikApi rolePublik = rolePublikApiService.createRole(rj);
 			just_created = true;
-			
+
 			// maj BDD
 			role = new RoleAuto();
 			role.setId(roleName);
@@ -200,8 +239,8 @@ public class UserPublikController {
 			role.setSlug(rolePublik.getSlug());
 			role.setOu(rolePublik.getOu());
 			role.setDatMaj(LocalDateTime.now());
-			role = roleService.saveRole(role);
-				
+			role = roleAutoService.saveRole(role);
+
 		} else {
 			role= optRole.get();
 		}
@@ -209,22 +248,22 @@ public class UserPublikController {
 		// Si le role vient d'etre créé ou si la personne n'a pas (ou plus) le role
 		if(just_created || !userPossedeRole(login, role.getId()) ) {
 
-				// Ajout du role à la personne dans Publik
-				AddUserToRoleResponsePublikApi utr = rolePublikApiService.addUserToRole(userUuid, role.getUuid());
+			// Ajout du role à la personne dans Publik
+			AddUserToRoleResponsePublikApi utr = rolePublikApiService.addUserToRole(userUuid, role.getUuid());
 
-				// MAJ BDD
-				UserRole ur = new UserRole();
-				UserRolePK urpk = new UserRolePK();
-				urpk.setLogin(login);
-				urpk.setRoleId(role.getId());
-				ur.setId(urpk);
-				ur.setDatMaj(LocalDateTime.now());
-				ur = roleService.saveUserRole(ur);
+			// MAJ BDD
+			UserRole ur = new UserRole();
+			UserRolePK urpk = new UserRolePK();
+			urpk.setLogin(login);
+			urpk.setRoleId(role.getId());
+			ur.setId(urpk);
+			ur.setDatMaj(LocalDateTime.now());
+			ur = roleAutoService.saveUserRole(ur);
 		}
 	}
 
 	private boolean userPossedeRole(String login, String roleId) {
-		Optional<UserRole> ru = roleService.findUserRole(login, roleId);
+		Optional<UserRole> ru = roleAutoService.findUserRole(login, roleId);
 		// Si le role est associe au user sans date de suppression
 		if(ru.isPresent() && ru.get().getDatSup() == null) {
 			return true;

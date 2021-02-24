@@ -63,10 +63,12 @@ public class RolesUnitairesSupprJob {
 					try {
 						if(r!=null && r.getUuid()!=null) {
 							//suppression du role
-							rolePublikApiService.deleteRole(r.getUuid());
+							if(!rolePublikApiService.deleteRole(r.getUuid())) {
+								// Incrément du compteur d'erreur
+								process.setNbObjErreur(process.getNbObjErreur() + 1);
+							}
 							// Incrément du nombre d'objet traités
 							process.setNbObjTraite(process.getNbObjTraite() + 1);
-
 							// sauvegarde du nombre d'objets traites dans la base
 							process = processHisService.update(process);
 						}

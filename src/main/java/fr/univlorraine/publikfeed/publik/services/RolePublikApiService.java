@@ -6,9 +6,11 @@ import java.util.Map;
 import org.flywaydb.core.internal.util.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.support.BasicAuthenticationInterceptor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -49,12 +51,12 @@ public class RolePublikApiService {
 	public RoleResponsePublikApi getRoles(String url ) {
 
 		log.info("getAllRoles ...");
-		
+
 		if(!StringUtils.hasText(url)) {
 			// On récupère l'URL de l'api
 			url = apiUrl + ROLES + "/";
 		}
-		
+
 		//Body
 		Map<String,String> params = new HashMap<String,String>();
 
@@ -84,9 +86,9 @@ public class RolePublikApiService {
 		return null;
 
 	}
-	
-	
-	
+
+
+
 	/**
 	 * Créer un role dans Publik
 	 * @param role
@@ -127,10 +129,10 @@ public class RolePublikApiService {
 		return null;
 
 	}
-	
-	
-	
-	
+
+
+
+
 	/**
 	 * Ajouter un user dans un role
 	 * @param role
@@ -173,10 +175,10 @@ public class RolePublikApiService {
 		return null;
 
 	}
-	
-	
-	
-	
+
+
+
+
 	/**
 	 * Fixer les users d'un role
 	 * @param role
@@ -218,19 +220,19 @@ public class RolePublikApiService {
 		return null;
 
 	}
-	
+
 
 	/**
 	 * Supprime le role dans Publib à partir de l'uuid en parametre
 	 * @param uuid
 	 */
-	public void deleteRole(String uuid) {
+	public boolean deleteRole(String uuid) {
 		log.info("Suppression role Publik {}", uuid);
-		
+
 		// On calcule l'URL de l'api
 		String url = apiUrl + ROLES + "/" + uuid + "/";
-		
-		
+
+
 		//Body
 		Map<String,String> params = new HashMap<String,String>();
 
@@ -244,18 +246,55 @@ public class RolePublikApiService {
 		@SuppressWarnings("unchecked")
 		ResponseEntity<String> response = rt.exchange(url, HttpMethod.DELETE, Utils.createRequest(null), String.class, params);
 
-		log.info("Publik Response :" + response);
+		log.info("Publik Response " + response.getStatusCode() +" :" + response);
 
 		//Si on a eu une réponse
-		if (response != null && response.getBody()!=null) {
-			log.info("Suppression role reponse : {}", response.getStatusCode());
+		if (response.getStatusCode().equals(HttpStatus.OK)) {
+			log.info("Suppression role reponse OK : {}", response.getStatusCode());
+			return true;
 		}
+		return false;
 
-		
 	}
 
-	
 
-	
+	/**
+	 * Supprime le user du role
+	 * @param userUuid
+	 * @param roleId
+	 */
+	public boolean deleteUserFromRole(String userUuid, String roleUuid) {
+		log.info("Suppression de {} du role Publik {}", userUuid, roleUuid);
+
+		// On calcule l'URL de l'api
+		String url = apiUrl + ROLES + "/" + roleUuid + "/members/" + userUuid + "/";
+
+		//Body
+		Map<String,String> params = new HashMap<String,String>();
+
+		RestTemplate rt = new RestTemplate();
+
+		log.info("call url : " + url );
+
+		rt.getInterceptors().add(new BasicAuthenticationInterceptor(apiUsername, apiPassword));
+
+		//Appelle du WS qui créé le role Publik
+		@SuppressWarnings("unchecked")
+		ResponseEntity<String> response = rt.exchange(url, HttpMethod.DELETE, Utils.createRequest(null), String.class, params);
+
+		log.info("Publik Response " + response.getStatusCode() +" :" + response);
+
+
+		//Si on a eu une réponse
+		if (response.getStatusCode().equals(HttpStatus.OK)) {
+			log.info("Suppression du user du role reponse OK : {}", response.getStatusCode());
+			return true;
+		}
+		return false;
+	}
+
+
+
+
 
 }

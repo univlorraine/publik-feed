@@ -1,6 +1,7 @@
 package fr.univlorraine.publikfeed.model.app.services;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Optional;
 
 import javax.annotation.Resource;
@@ -48,6 +49,10 @@ public class RoleAutoService implements Serializable {
 
 	public UserRole saveUserRole(UserRole ur) {
 		return userRoleRepository.save(ur);
+	}
+
+	public List<UserRole> findRolesFromLogin(String login) {
+		return userRoleRepository.findByIdLogin(login);
 	}
 	
 	
