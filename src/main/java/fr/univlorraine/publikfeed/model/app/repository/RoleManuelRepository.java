@@ -13,6 +13,6 @@ import fr.univlorraine.publikfeed.model.app.entity.RoleManuel;
 @Repository
 public interface RoleManuelRepository extends JpaSpecificationExecutor<RoleManuel>, JpaRepository<RoleManuel, String> {
 
-	public List<RoleManuel> findByDatSupNotNull();
+	public List<RoleManuel> findByDatSupNull();
 
 }

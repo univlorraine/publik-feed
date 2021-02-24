@@ -8,10 +8,13 @@ import java.util.concurrent.TimeUnit;
 /** @author Matthieu MANGINOT / Charlie Dubois */
 public class SemaphoreUtils {
 
-	/** Sémaphore pour les jobs start et stop des routes initiales */
+	/** Sémaphore pour le job de sync de users */
 	public static final Semaphore syncUserJob = new Semaphore(1);
 	
-	/** Sémaphore pour les jobs start et stop des routes initiales */
+	/** Sémaphore pour le job de sync des roles manuels */
+	public static final Semaphore syncRoleManuel = new Semaphore(1);
+	
+	/** Sémaphore pour le job de suppression des role unitaires */
 	public static final Semaphore supprUnitRoleJob = new Semaphore(1);
 
 
@@ -21,6 +24,7 @@ public class SemaphoreUtils {
 	
 	static {
 		semaphoreJobMap.put(JobUtils.SYNC_USERS_JOB, syncUserJob);
+		semaphoreJobMap.put(JobUtils.SYNC_ROLES_MANUELS_JOB, syncRoleManuel);
 		semaphoreJobMap.put(JobUtils.SUPPR_ROLES_UNITAIRES_JOB, supprUnitRoleJob);
 		
 	}

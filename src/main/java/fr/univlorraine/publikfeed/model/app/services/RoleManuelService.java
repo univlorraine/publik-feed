@@ -37,7 +37,7 @@ public class RoleManuelService implements Serializable {
 	}
 
 	public List<RoleManuel> findActive() {
-		return roleManuelRepository.findByDatSupNotNull();
+		return roleManuelRepository.findByDatSupNull();
 	}
 
 

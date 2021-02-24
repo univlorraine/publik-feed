@@ -13,12 +13,11 @@ import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import fr.univlorraine.publikfeed.json.entity.ListUuidJson;
 import fr.univlorraine.publikfeed.json.entity.RoleJson;
-import fr.univlorraine.publikfeed.json.entity.UserJson;
 import fr.univlorraine.publikfeed.publik.entity.AddUserToRoleResponsePublikApi;
 import fr.univlorraine.publikfeed.publik.entity.RolePublikApi;
 import fr.univlorraine.publikfeed.publik.entity.RoleResponsePublikApi;
-import fr.univlorraine.publikfeed.publik.entity.UserPublikApi;
 import fr.univlorraine.publikfeed.utils.Utils;
 import lombok.extern.slf4j.Slf4j;
 
@@ -174,6 +173,52 @@ public class RolePublikApiService {
 		return null;
 
 	}
+	
+	
+	
+	
+	/**
+	 * Fixer les users d'un role
+	 * @param role
+	 * @return
+	 */
+	public AddUserToRoleResponsePublikApi setUsersToRole(String roleUuid, ListUuidJson users) {
+
+		log.info("setUsersToRole :  {} ", roleUuid );
+		// On récupère l'URL de l'api
+		String purl = apiUrl + ROLES + "/{role_uuid}/relationships/members/" ;
+
+		//Body
+		Map<String,String> params = new HashMap<String,String>();
+		params.put("role_uuid", roleUuid);
+
+		RestTemplate rt = new RestTemplate();
+
+		log.info("call url : " + purl + " role_uuid : " + roleUuid );
+
+		rt.getInterceptors().add(new BasicAuthenticationInterceptor(apiUsername, apiPassword));
+
+		//Appelle du WS qui créé le role Publik
+		@SuppressWarnings("unchecked")
+		ResponseEntity<String> response = rt.exchange(purl, HttpMethod.PUT, Utils.createRequest(users), String.class, params);
+
+		log.info("Publik Response :" + response);
+
+		//Si on a eu une réponse
+		if (response != null && response.getBody()!=null) {
+			ObjectMapper objectMapper = new ObjectMapper();
+			AddUserToRoleResponsePublikApi autrrpa;
+			try {
+				autrrpa = objectMapper.readValue(response.getBody(), AddUserToRoleResponsePublikApi.class);
+				return autrrpa;
+			} catch (Exception e) {
+				log.warn("Erreur lors du traitement qui fixe les utilisateurs du role "+roleUuid, e);
+			} 
+		}
+		return null;
+
+	}
+	
 
 	/**
 	 * Supprime le role dans Publib à partir de l'uuid en parametre

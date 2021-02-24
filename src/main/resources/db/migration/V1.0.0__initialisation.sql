@@ -69,11 +69,13 @@ CREATE TABLE user_role (
  	ou varchar(50) NULL,
  	hash text DEFAULT NULL,
  	dat_maj timestamp NULL,
- 	dat_maj_publik timestamp NULL,
  	dat_sup timestamp NULL,
+ 	dat_cre_publik timestamp NULL,
+ 	dat_maj_publik timestamp NULL,
+ 	dat_sup_publik timestamp NULL,
  	CONSTRAINT groupe_pkey PRIMARY KEY (id)
  );
 
- -- INSERT INTO `role_manuel` (`id`, `libelle`, `logins`, `filtre`, `uuid`, `slug`, `ou`, `hash`, `dat_maj`, `dat_maj_publik`, `dat_sup`) VALUES ('SOME_GUYS', 'test de role manuel', 'dubois1', '(supannEntiteAffectation=*G1NA-)', NULL, NULL, NULL, NULL, '2021-02-23 17:57:20', NULL, NULL); 
+ -- INSERT INTO `role_manuel` (`id`, `libelle`, `logins`, `filtre`, `uuid`, `slug`, `ou`, `hash`, `dat_maj`, `dat_maj_publik`, `dat_sup`) VALUES ('SOME_DEV', 'test de role manuel', 'dubois1', '(supannEntiteAffectation=*G1NA-)', NULL, NULL, NULL, NULL, '2021-02-23 17:57:20', NULL, NULL); 
 
 

@@ -35,6 +35,8 @@ public class Utils {
 	public static final String ROLE_SEPARATOR = "_";
 
 	public static final String PREFIX_ROLE_BC = "BC";
+
+	public static final String PREFIX_ROLE_MANUEL = "ZZM_";
 	
 
 

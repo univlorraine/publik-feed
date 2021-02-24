@@ -32,6 +32,16 @@ public class UserHisService implements Serializable {
 	public Optional<UserHis> find(final String login) {
 		return userHisRepository.findById(login);
 	}
+
+	public String getUuidFromLogin(String login) {
+		if(login !=null) {
+			Optional<UserHis> u = find(login);
+			if(u.isPresent() && u.get().getUuid()!=null) {
+				return u.get().getUuid();
+			}
+		}
+		return null;
+	}
 	
 	
 }

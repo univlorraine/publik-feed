@@ -58,15 +58,24 @@ public class RoleManuel implements Serializable {
 	private LocalDateTime datMaj;
 	
 	@Convert(converter = LocalDateTimePersistenceConverter.class)
+	@Column(name = "dat_sup")
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd@HH:mm:ss")
+	private LocalDateTime datSup;
+
+	@Convert(converter = LocalDateTimePersistenceConverter.class)
+	@Column(name = "dat_cre_publik")
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd@HH:mm:ss")
+	private LocalDateTime datCrePublik;
+	
+	@Convert(converter = LocalDateTimePersistenceConverter.class)
 	@Column(name = "dat_maj_publik")
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd@HH:mm:ss")
 	private LocalDateTime datMajPublik;
 	
 	@Convert(converter = LocalDateTimePersistenceConverter.class)
-	@Column(name = "dat_sup")
+	@Column(name = "dat_sup_publik")
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd@HH:mm:ss")
-	private LocalDateTime datSup;
-
+	private LocalDateTime datSupPublik;
 
 
 }
