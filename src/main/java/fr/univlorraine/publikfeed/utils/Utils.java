@@ -3,6 +3,7 @@ package fr.univlorraine.publikfeed.utils;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.TimeZone;
 
 import org.flywaydb.core.internal.util.StringUtils;
@@ -23,13 +24,13 @@ import lombok.extern.slf4j.Slf4j;
  *         Méthodes Utiles */
 @Slf4j
 public class Utils {
-	
+
 	public static final String PREFIX_ROLE_UNITAIRE = "ZZU_";
-	
+
 	public static final String PREFIX_ROLE_NOMINATIF = "RN_";
 
 	public static final String PREFIX_ROLE_PERSONNEL = "EMP";
-	
+
 	public static final String PREFIX_ROLE_ETUDIANT = "ETU";
 
 	public static final String ROLE_SEPARATOR = "_";
@@ -37,7 +38,7 @@ public class Utils {
 	public static final String PREFIX_ROLE_BC = "BC";
 
 	public static final String PREFIX_ROLE_MANUEL = "ZZM_";
-	
+
 
 
 	/** Formate la date pour LDAP */
@@ -92,8 +93,16 @@ public class Utils {
 		return null;
 	}
 
-	
-	
+
+	public static String formatDateForDisplay(LocalDateTime date) {
+		if(date !=null) {
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+			return date.format(formatter);
+		}
+		return null;
+	}
+
+
 	public static HttpEntity createRequest(Object body) {
 		// Headers
 		HttpHeaders requestHeaders = createHeaders(MediaType.APPLICATION_JSON.toString());
@@ -116,6 +125,6 @@ public class Utils {
 		}*/
 		return requestHeaders;
 	}
-	
+
 
 }

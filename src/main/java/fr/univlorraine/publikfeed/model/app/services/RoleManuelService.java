@@ -44,6 +44,10 @@ public class RoleManuelService implements Serializable {
 		return roleManuelRepository.findByDatSupNotNullAndUuidNotNullAndDatSupPublikNull();
 	}
 
+	public List<RoleManuel> findAll() {
+		return roleManuelRepository.findAll();
+	}
+
 
 	
 	

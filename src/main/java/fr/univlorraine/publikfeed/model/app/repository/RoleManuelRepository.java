@@ -17,4 +17,6 @@ public interface RoleManuelRepository extends JpaSpecificationExecutor<RoleManue
 
 	public List<RoleManuel> findByDatSupNotNullAndUuidNotNullAndDatSupPublikNull();
 
+	public List<RoleManuel> findAll();
+
 }
