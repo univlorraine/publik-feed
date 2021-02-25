@@ -9,6 +9,7 @@ import javax.annotation.Resource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import fr.univlorraine.publikfeed.controllers.RolePublikController;
 import fr.univlorraine.publikfeed.ldap.entity.PeopleLdap;
 import fr.univlorraine.publikfeed.ldap.services.LdapGenericService;
 import fr.univlorraine.publikfeed.model.app.entity.ProcessHis;
@@ -28,6 +29,8 @@ public class SupprRolesManuelsInactifJob {
 	private transient String defaultUsers;
 
 
+	@Resource
+	private RolePublikController rolePublikController;
 
 	@Resource
 	private ProcessHisService processHisService;
@@ -75,16 +78,10 @@ public class SupprRolesManuelsInactifJob {
 
 				for(RoleManuel role : lroles) {
 					try {
-						// On supprime le role dans Publik
-						boolean isDeleted = rolePublikApiService.deleteRole(role.getUuid());
-
-						// Si la suppression s'est bien passée
-						if(isDeleted) {
-							// On met à jour la base
-							role.setDatSupPublik(LocalDateTime.now());
-							roleManuelService.saveRole(role);
-						} else {
-							// Incrément du nombre d'objet traités
+						boolean isDeleted = rolePublikController.deleteRoleInPublik(role);
+						
+						if(!isDeleted) {
+							// Incrément du nombre d'objet traités en erreur
 							process.setNbObjErreur(process.getNbObjErreur() + 1);
 						}
 						// Incrément du nombre d'objet traités
