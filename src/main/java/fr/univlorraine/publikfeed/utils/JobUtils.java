@@ -17,6 +17,8 @@ public final class JobUtils {
 	
 	public static final String SYNC_ROLES_MANUELS_JOB = "SyncRolesManuelsJob";
 	
+	public static final String SUPPR_ROLES_MANUELS_INACTIFS = "SupprRolesManuelsInactifs";
+	
 	public static final String SUPPR_ROLES_UNITAIRES_JOB = "SupprRolesUnitJob";
 	
 	public static final String RUNNING = "RUNNING";
@@ -31,6 +33,7 @@ public final class JobUtils {
 	static {
 		jobList.add(JobUtils.SYNC_USERS_JOB);
 		jobList.add(JobUtils.SYNC_ROLES_MANUELS_JOB);
+		jobList.add(JobUtils.SUPPR_ROLES_MANUELS_INACTIFS);
 		jobList.add(JobUtils.SUPPR_ROLES_UNITAIRES_JOB);
 	}
 

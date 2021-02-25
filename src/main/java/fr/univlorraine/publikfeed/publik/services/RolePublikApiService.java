@@ -249,7 +249,7 @@ public class RolePublikApiService {
 		log.info("Publik Response " + response.getStatusCode() +" :" + response);
 
 		//Si on a eu une réponse
-		if (response.getStatusCode().equals(HttpStatus.OK)) {
+		if (response.getStatusCode().equals(HttpStatus.OK) || response.getStatusCode().equals(HttpStatus.NO_CONTENT)) {
 			log.info("Suppression role reponse OK : {}", response.getStatusCode());
 			return true;
 		}

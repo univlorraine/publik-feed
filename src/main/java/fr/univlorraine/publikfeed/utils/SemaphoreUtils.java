@@ -14,6 +14,9 @@ public class SemaphoreUtils {
 	/** Sémaphore pour le job de sync des roles manuels */
 	public static final Semaphore syncRoleManuel = new Semaphore(1);
 	
+	/** Sémaphore pour le job de sync des roles manuels */
+	public static final Semaphore supprRoleManuelInactif = new Semaphore(1);
+	
 	/** Sémaphore pour le job de suppression des role unitaires */
 	public static final Semaphore supprUnitRoleJob = new Semaphore(1);
 
@@ -26,6 +29,7 @@ public class SemaphoreUtils {
 		semaphoreJobMap.put(JobUtils.SYNC_USERS_JOB, syncUserJob);
 		semaphoreJobMap.put(JobUtils.SYNC_ROLES_MANUELS_JOB, syncRoleManuel);
 		semaphoreJobMap.put(JobUtils.SUPPR_ROLES_UNITAIRES_JOB, supprUnitRoleJob);
+		semaphoreJobMap.put(JobUtils.SUPPR_ROLES_MANUELS_INACTIFS, supprRoleManuelInactif);
 		
 	}
 
