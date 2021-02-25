@@ -37,6 +37,7 @@ import fr.univlorraine.publikfeed.ui.layout.MainLayout;
 import fr.univlorraine.publikfeed.ui.layout.PageTitleFormatter;
 import fr.univlorraine.publikfeed.ui.layout.TextHeader;
 import fr.univlorraine.publikfeed.utils.JobUtils;
+import fr.univlorraine.publikfeed.utils.Utils;
 import lombok.Getter;
 
 @Route(layout = MainLayout.class)
@@ -65,22 +66,22 @@ public class MainView extends VerticalLayout implements HasDynamicTitle, HasHead
 		.setFlexGrow(1)
 		.setAutoWidth(true)
 		.setFrozen(true)
-		.setResizable(true);
+		.setResizable(true).setHeader("Code");;
 	private final Column<ProcessHis> stateColumn = processGrid.addComponentColumn(ph -> getStateColumn(ph))
 		.setFlexGrow(1)
-		.setAutoWidth(true);
+		.setAutoWidth(true).setHeader("Etat");
 	private final Column<ProcessHis> avancementColumn = processGrid.addComponentColumn(ph -> getAvancementColumn(ph))
 		.setFlexGrow(1)
-		.setAutoWidth(true);
+		.setAutoWidth(true).setHeader("Progression");
 	private final Column<ProcessHis> anomalieColumn = processGrid.addColumn(ph -> ph.getNbObjErreur())
 		.setFlexGrow(1)
-		.setAutoWidth(true);
-	private final Column<ProcessHis> datDebColumn = processGrid.addColumn(ph -> ph.getId().getDatDeb())
+		.setAutoWidth(true).setHeader("Nb erreur");
+	private final Column<ProcessHis> datDebColumn = processGrid.addColumn(ph -> Utils.formatDateForDisplay(ph.getId().getDatDeb()))
 		.setFlexGrow(1)
-		.setAutoWidth(true);
-	private final Column<ProcessHis> datFinColumn = processGrid.addColumn(ProcessHis::getDatFin)
+		.setAutoWidth(true).setHeader("Date Debut");
+	private final Column<ProcessHis> datFinColumn = processGrid.addColumn(ph -> Utils.formatDateForDisplay(ph.getDatFin()))
 		.setFlexGrow(1)
-		.setAutoWidth(true);
+		.setAutoWidth(true).setHeader("Date Fin");
 
 	List<ProcessHis> listJobs;
 

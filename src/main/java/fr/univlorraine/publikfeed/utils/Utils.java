@@ -4,6 +4,8 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
+import java.util.Locale;
 import java.util.TimeZone;
 
 import org.flywaydb.core.internal.util.StringUtils;
@@ -38,6 +40,8 @@ public class Utils {
 	public static final String PREFIX_ROLE_BC = "BC";
 
 	public static final String PREFIX_ROLE_MANUEL = "ZZM_";
+	
+	public static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).localizedBy(Locale.FRANCE);
 
 
 
@@ -96,7 +100,7 @@ public class Utils {
 
 	public static String formatDateForDisplay(LocalDateTime date) {
 		if(date !=null) {
-			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 			return date.format(formatter);
 		}
 		return null;
