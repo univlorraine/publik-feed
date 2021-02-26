@@ -1,8 +1,10 @@
 package fr.univlorraine.publikfeed.utils;
 
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.time.chrono.ChronoLocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.Locale;
@@ -53,6 +55,29 @@ public class Utils {
 		DateFormat format = new SimpleDateFormat("yyyyMMddHHmmssZ");
 		return format.format(originalDateTime);
 	}*/
+	
+	/** Creation d'une date à partir d'une date au format LDAP RFC822 */
+	public static LocalDateTime getDateFromLdap(String ldaptimestamp) {
+		if(StringUtils.hasText(ldaptimestamp)) {
+
+			// suppression du Z de fin de date ldap
+			ldaptimestamp = ldaptimestamp.replaceAll("Z", "");
+			
+			DateFormat gmtFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+			TimeZone gmtTime = TimeZone.getTimeZone("GMT");
+			gmtFormat.setTimeZone(gmtTime);
+			
+			LocalDateTime ldt;
+			try {
+				ldt = new java.sql.Timestamp(gmtFormat.parse(ldaptimestamp).getTime()).toLocalDateTime();
+				log.debug("Date ldap {} -> localDateTime : {}", ldaptimestamp, ldt);
+				return ldt;
+			} catch (ParseException e) {
+				log.error("Erreur de parsing de date ",e);
+			}
+		}
+		return null;
+	}
 
 	/** Formatage d'une date au format LDAP RFC822 */
 	public static String formatDateToLdap(final LocalDateTime originalDateTime) {
@@ -129,6 +154,8 @@ public class Utils {
 		}*/
 		return requestHeaders;
 	}
+
+	
 
 
 }

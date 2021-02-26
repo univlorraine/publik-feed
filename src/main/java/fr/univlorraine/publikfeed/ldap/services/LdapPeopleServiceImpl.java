@@ -18,6 +18,7 @@ import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.ldap.core.DistinguishedName;
 import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.core.support.AbstractContextMapper;
+import org.springframework.ldap.query.SearchScope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -129,8 +130,10 @@ public class LdapPeopleServiceImpl implements LdapGenericService<PeopleLdap> {
 	public List<PeopleLdap> findEntitiesByFilter(String filter) throws LdapServiceException {
 		List<PeopleLdap> l = null;
 		try {
+			String[] attributes = {"objectClass","eduPersonPrincipalName","businessCategory","displayName","givenName","sn","mail","supannEmpId","supannEtuId","supannCivilite","uid","udlCategories","modifyTimestamp"};
 			/* Utilisation du ldap de lecture pour nombre de résultat illimité */
-			l = ldapTemplateRead.search(BASE_DN, filter, getContextMapper());
+			l = ldapTemplateRead.search(BASE_DN, filter, SearchScope.ONELEVEL.getId(), attributes, getContextMapper());
+				//search(BASE_DN, filter,SearchScope.ONELEVEL, attributes, getContextMapper());
 		} catch (NameNotFoundException e) {
 			// TODO contains pas top
 			if (e.getMessage().contains("error code 32 - No Such Object")) {
@@ -176,6 +179,7 @@ public class LdapPeopleServiceImpl implements LdapGenericService<PeopleLdap> {
 		addAttributToContext("supannEmpId", o.getSupannEmpId(), context);
 		addAttributToContext("supannEtuId", o.getSupannEtuId(), context);
 		addAttributToContext("supannCivilite", o.getSupannCivilite(), context);
+		addAttributToContext("modifyTimestamp", o.getModifyTimestamp(), context);
 		addAttributToContext("uid", o.getUid(), context);
 		addAttributToContext("udlCategories", o.getUdlCategories(), context);
 	}
@@ -200,6 +204,7 @@ public class LdapPeopleServiceImpl implements LdapGenericService<PeopleLdap> {
 			o.setSupannEmpId(context.getStringAttribute("supannEmpId"));
 			o.setSupannEtuId(context.getStringAttribute("supannEtuId"));
 			o.setSupannCivilite(context.getStringAttribute("supannCivilite"));
+			o.setModifyTimestamp(context.getStringAttribute("modifyTimestamp"));
 			o.setUid(context.getStringAttribute("uid"));
 			o.setUdlCategories(context.getStringAttributes("udlCategories"));
 			return o;

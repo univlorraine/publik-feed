@@ -97,6 +97,7 @@ public class UsersSyncJob {
 							process = processHisService.update(process);
 
 						}catch (Exception e) {
+							log.warn("Exception lors du traitement du user",e);
 							// Incrément du nombre d'objet traités
 							process.setNbObjTraite(process.getNbObjTraite() + 1);
 							// Incrément du compteur d'erreur
