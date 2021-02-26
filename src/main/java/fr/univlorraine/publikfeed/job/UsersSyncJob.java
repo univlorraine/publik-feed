@@ -5,6 +5,7 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import fr.univlorraine.publikfeed.controllers.UserPublikController;
@@ -22,6 +23,10 @@ import lombok.extern.slf4j.Slf4j;
 @Component(value="usersSyncJob")
 @Slf4j
 public class UsersSyncJob {
+	
+	
+	@Value("${filtre.userssyncjob}")
+	private transient String filtreSyncUser;
 
 	@Resource
 	private UserPublikController userPublikController;
@@ -67,7 +72,7 @@ public class UsersSyncJob {
 			}
 
 			// Filtre ldap
-			String filtre = "(&(uid=*)(supannEntiteAffectation=*G1NA-)(eduPersonPrincipalName=*)(modifytimestamp>=" + dateLdap + "))";
+			String filtre = "(&"+filtreSyncUser+"(modifytimestamp>=" + dateLdap + "))";
 
 			// Execution du filtre ldap
 			try {
