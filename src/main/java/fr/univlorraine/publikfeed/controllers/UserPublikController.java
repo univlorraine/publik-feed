@@ -58,7 +58,7 @@ public class UserPublikController {
 		UserJson userLdap = Utils.getUserJson(p);
 
 		log.debug("modifytimestamp de {} : {}",p.getUid(), p.getModifyTimestamp());
-		
+
 		// Récupération de la derniere synchro du compte sauvegardée dans la base
 		Optional<UserHis> ouh = userHisService.find(p.getUid());
 
@@ -167,10 +167,13 @@ public class UserPublikController {
 	public void checkRolesUnitaires(PeopleLdap p,  String userUuid) throws Exception {
 		List<String> listeRole = new LinkedList<String> ();
 
-		// Role unitaire nominatif
-		String roleName = Utils.PREFIX_ROLE_UNITAIRE + Utils.PREFIX_ROLE_NOMINATIF + p.getEduPersonPrincipalName();
-		createOrUpdateRole(roleName, p.getUid(), userUuid);
-		listeRole.add(roleName);
+		// Si ce n'est pas un étudiant
+		if(StringUtils.hasText(p.getSupannEtuId()) && !StringUtils.hasText(p.getSupannEmpId())) {
+			// Traitement role unitaire nominatif
+			String roleName = Utils.PREFIX_ROLE_UNITAIRE + Utils.PREFIX_ROLE_NOMINATIF + p.getEduPersonPrincipalName();
+			createOrUpdateRole(roleName, p.getUid(), userUuid);
+			listeRole.add(roleName);
+		}
 
 		// Role Pers UL
 		if(StringUtils.hasText(p.getSupannEmpId())) {
