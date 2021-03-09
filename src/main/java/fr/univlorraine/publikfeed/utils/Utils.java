@@ -7,6 +7,8 @@ import java.time.LocalDateTime;
 import java.time.chrono.ChronoLocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -17,7 +19,9 @@ import org.springframework.http.MediaType;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import fr.univlorraine.publikfeed.json.entity.ListUuidJson;
 import fr.univlorraine.publikfeed.json.entity.UserJson;
+import fr.univlorraine.publikfeed.json.entity.UuidJson;
 import fr.univlorraine.publikfeed.ldap.entity.PeopleLdap;
 import fr.univlorraine.publikfeed.model.app.entity.UserHis;
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +47,11 @@ public class Utils {
 
 	public static final String PREFIX_ROLE_MANUEL = "ZZM_";
 	
+	public static final String PREFIX_ROLE_RESP = "ZZR_";
+	
 	public static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).localizedBy(Locale.FRANCE);
+
+	
 
 
 
@@ -153,6 +161,35 @@ public class Utils {
 			requestHeaders.add(Utils.GRAVITEE_KEY_HEADER, PropertyUtils.getWsSihamApiKey());
 		}*/
 		return requestHeaders;
+	}
+
+	/*
+	 * 
+	 * Retourne l'objet ListUuidJson correspondans à la liste uuids en parametre
+	 */
+	public static ListUuidJson getListUuidJson(List<String> uuids) {
+		ListUuidJson data = new ListUuidJson();
+		List<UuidJson> liste = new LinkedList<UuidJson> ();
+		
+		// Ajout des uuids dans la liste
+		for(String uuid : uuids) {
+			UuidJson j = new UuidJson();
+			j.setUuid(uuid);
+			liste.add(j);
+		}
+		// Ajout de la liste à l'objet json
+		data.setData(liste);
+		return data;
+	}
+
+	public static String getHash(ListUuidJson data) {
+		String hash = null;
+		// Si il y a des uuids dans le role
+		if(!data.getData().isEmpty()) {
+			//  Creation du hash à partir de l'objet
+			hash = String.valueOf(data.hashCode());
+		}
+		return hash;
 	}
 
 	

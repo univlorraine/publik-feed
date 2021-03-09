@@ -56,7 +56,7 @@ CREATE TABLE user_role (
 	login varchar(20) NOT NULL,
 	dat_maj timestamp NULL,
 	dat_sup timestamp NULL,
-	CONSTRAINT role_user_pkey PRIMARY KEY (role_id, login)
+	CONSTRAINT user_role_pkey PRIMARY KEY (role_id, login)
 );
 
  CREATE TABLE role_manuel (
@@ -73,7 +73,7 @@ CREATE TABLE user_role (
  	dat_cre_publik timestamp NULL,
  	dat_maj_publik timestamp NULL,
  	dat_sup_publik timestamp NULL,
- 	CONSTRAINT groupe_pkey PRIMARY KEY (id)
+ 	CONSTRAINT role_manuel_pkey PRIMARY KEY (id)
  );
 
  -- INSERT INTO `role_manuel` (`id`, `libelle`, `logins`, `filtre`, `uuid`, `slug`, `ou`, `hash`, `dat_maj`, `dat_maj_publik`, `dat_sup`) VALUES ('SOME_DEV', 'test de role manuel', 'dubois1', '(supannEntiteAffectation=*G1NA-)', NULL, NULL, NULL, NULL, '2021-02-23 17:57:20', NULL, NULL); 

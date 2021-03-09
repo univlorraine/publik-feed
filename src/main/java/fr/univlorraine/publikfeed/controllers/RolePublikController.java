@@ -155,24 +155,12 @@ public class RolePublikController {
 		
 		log.info("{} users dans le groupe {}", uuids.size(), role.getId());
 		
-		//Creation de l'objet Json correspondant à la liste
-		ListUuidJson data = new ListUuidJson();
-		List<UuidJson> liste = new LinkedList<UuidJson> ();
-		// Ajout des uuids dans la liste
-		for(String uuid : uuids) {
-			UuidJson j = new UuidJson();
-			j.setUuid(uuid);
-			liste.add(j);
-		}
-		// Ajout de la liste à l'objet json
-		data.setData(liste);
 		
-		String hash = null;
-		// Si il y a des uuids dans le role
-		if(!liste.isEmpty()) {
-			//  Creation du hash à partir de l'objet
-			hash = String.valueOf(data.hashCode());
-		}
+		//Creation de l'objet Json correspondant à la liste
+		ListUuidJson data = Utils.getListUuidJson(uuids);
+		
+		// Creation du hash
+		String hash = Utils.getHash(data);
 		
 		log.info("Hash du role {} : {}", role.getId(), hash);
 		

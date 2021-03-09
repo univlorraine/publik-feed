@@ -146,7 +146,7 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 		loginsField.setReadOnly(true);
 		filtreEtLoginlayout.add(loginsField);
 		TextField dateMajField = new TextField("Date Maj");
-		dateMajField.setValue(r.getDatMaj() != null ? Utils.formatDateForDisplay(r.getDatCrePublik()) : "");
+		dateMajField.setValue(r.getDatMaj() != null ? Utils.formatDateForDisplay(r.getDatMaj()) : "");
 		dateMajField.setReadOnly(true);
 		filtreEtLoginlayout.add(dateMajField);
 		TextField dateSupField = new TextField("Date Suppression");
