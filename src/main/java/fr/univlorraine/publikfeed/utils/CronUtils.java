@@ -10,6 +10,8 @@ public final class CronUtils {
 	
 	public static final String CRON_SYNC_ROLE_MANUEL = "0 30 6 * * ?";
 	
+	public static final String CRON_SYNC_ROLE_RESP = "0 40 6 * * ?";
+	
 	public static final String CRON_SUPPR_ROLE_MANUEL_INACTIF = "0 5 7 * * ?";
 
 

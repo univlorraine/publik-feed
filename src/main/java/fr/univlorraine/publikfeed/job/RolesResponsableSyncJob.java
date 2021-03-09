@@ -1,11 +1,13 @@
 package fr.univlorraine.publikfeed.job;
 
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.annotation.Resource;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import fr.univlorraine.publikfeed.controllers.UserPublikController;
@@ -13,7 +15,6 @@ import fr.univlorraine.publikfeed.ldap.entity.PeopleLdap;
 import fr.univlorraine.publikfeed.ldap.exceptions.LdapServiceException;
 import fr.univlorraine.publikfeed.ldap.services.LdapGenericService;
 import fr.univlorraine.publikfeed.model.app.entity.ProcessHis;
-import fr.univlorraine.publikfeed.model.app.entity.UserErrHis;
 import fr.univlorraine.publikfeed.model.app.services.ProcessHisService;
 import fr.univlorraine.publikfeed.model.app.services.UserErrHisService;
 import fr.univlorraine.publikfeed.utils.JobUtils;
@@ -23,16 +24,16 @@ import lombok.extern.slf4j.Slf4j;
 @Component(value="rolesResponsableSyncJob")
 @Slf4j
 public class RolesResponsableSyncJob {
-	
-	
+
+
 
 	@Resource
 	private UserPublikController userPublikController;
-	
+
 	@Resource
 	private ProcessHisService processHisService;
 
-	
+
 	@Resource
 	private UserErrHisService userErrHisService;
 
@@ -42,7 +43,7 @@ public class RolesResponsableSyncJob {
 	private LdapGenericService<PeopleLdap> ldapPeopleService;
 
 
-	public void syncUsers() {
+	public void syncRoles() {
 
 		log.info("###################################################");
 		log.info("       START JOB "+JobUtils.SYNC_RESP_ROLE_JOB);
@@ -70,7 +71,9 @@ public class RolesResponsableSyncJob {
 			}
 
 			// Filtre ldap qui recupère les personnes avec des roles de type A , 1 ou 2 ayant été mis à jour depuis le derniere run
-			String filtre = "(&(uid=*)(|(udlFonction=*[type=A]*)(udlFonction=*[type=1]*)(udlFonction=*[type=2]*))(modifytimestamp>=" + dateLdap + "))";
+			String filtre = "(&(uid=*)(|(udlFonction=*[type=A]*)(udlFonction=*[type=1]*)(udlFonction=*[type=2]*)))";
+
+			HashMap<String, List<String>> mapResponsables = new HashMap<String, List<String>> ();
 
 			// Execution du filtre ldap
 			try {
@@ -85,35 +88,50 @@ public class RolesResponsableSyncJob {
 
 					// sauvegarde du nombre d'objets à traiter dans la base
 					process = processHisService.update(process);
+					try {
+						// Pour chaque entrée ldap
+						for(PeopleLdap p : lp) {
 
-					// Pour chaque entrée ldap
-					for(PeopleLdap p : lp) {
+							// On parcourt les fonctions et on renseigne la map
+							for(String udlFonction :  p.getUdlFonction()) {
 
-						try {
-							// TODO WHAT?????!!!!!!  A DECIDER CE QUON FAIT ICI 
-							
+								String codStr = udlFonction.split("\\[affect=")[1].split("\\]")[0].replaceFirst("\\{LOC\\}", "");
+								String typeFct = udlFonction.split("\\[type=")[1].split("\\]")[0];
+
+								// Si le type fait partie des types à gérer
+								if(typeFct.equals("A") || typeFct.equals("1") || typeFct.equals("2")) {
+									if(mapResponsables.containsKey(codStr)) {
+										mapResponsables.get(codStr).add(p.getUid());
+									} else {
+										List<String> llogin = new LinkedList<String> ();
+										llogin.add(p.getUid());
+										mapResponsables.put(codStr, llogin);
+									}
+								}
+							}
+
 							// Incrément du nombre d'objet traités
 							process.setNbObjTraite(process.getNbObjTraite() + 1);
 
 							// sauvegarde du nombre d'objets traites dans la base
 							process = processHisService.update(process);
 
-						}catch (Exception e) {
-							log.warn("Exception lors du traitement du user",e);
-							// Incrément du nombre d'objet traités
-							process.setNbObjTraite(process.getNbObjTraite() + 1);
-							// Incrément du compteur d'erreur
-							process.setNbObjErreur(process.getNbObjErreur() + 1);
-							// sauvegarde du nombre d'objets traites dans la base
-							process = processHisService.update(process);
-							
-							//sauvegarde de l'erreur dans la base
-							UserErrHis erreur = new UserErrHis();
-							erreur.setLogin(p.getUid());
-							erreur.setTrace(e.getMessage());
-							erreur = userErrHisService.save(erreur);
+
 						}
 
+						log.info("Map des responsables : {}", mapResponsables);
+						// TODO et puis on en fait quoi de la map ??
+
+
+
+					}catch (Exception e) {
+						log.warn("Exception lors du traitement du user",e);
+						// Incrément du nombre d'objet traités
+						process.setNbObjTraite(process.getNbObjTraite() + 1);
+						// Incrément du compteur d'erreur
+						process.setNbObjErreur(process.getNbObjErreur() + 1);
+						// sauvegarde du nombre d'objets traites dans la base
+						process = processHisService.update(process);
 					}
 				}
 

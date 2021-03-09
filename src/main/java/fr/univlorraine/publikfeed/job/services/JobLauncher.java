@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import fr.univlorraine.publikfeed.job.RolesManuelsSyncJob;
+import fr.univlorraine.publikfeed.job.RolesResponsableSyncJob;
 import fr.univlorraine.publikfeed.job.RolesUnitairesSupprJob;
 import fr.univlorraine.publikfeed.job.SupprRolesManuelsInactifJob;
 import fr.univlorraine.publikfeed.job.UsersSyncJob;
@@ -27,6 +28,9 @@ public class JobLauncher {
 	
 	@Autowired
 	private RolesManuelsSyncJob rolesManuelsSyncJob;
+	
+	@Autowired
+	private RolesResponsableSyncJob rolesResponsableSyncJob;
 
 
 	public void launch(String jobName) {
@@ -42,6 +46,9 @@ public class JobLauncher {
 				break;
 			case JobUtils.SUPPR_ROLES_UNITAIRES_JOB : 
 				supprRoleUnitaireJob.deleteAllRoles();
+				break;
+			case JobUtils.SYNC_RESP_ROLE_JOB :
+				rolesResponsableSyncJob.syncRoles();
 				break;
 		}
 	}

@@ -130,7 +130,7 @@ public class LdapPeopleServiceImpl implements LdapGenericService<PeopleLdap> {
 	public List<PeopleLdap> findEntitiesByFilter(String filter) throws LdapServiceException {
 		List<PeopleLdap> l = null;
 		try {
-			String[] attributes = {"objectClass","eduPersonPrincipalName","businessCategory","displayName","givenName","sn","mail","supannEmpId","supannEtuId","supannCivilite","uid","udlCategories","modifyTimestamp"};
+			String[] attributes = {"objectClass","eduPersonPrincipalName","businessCategory","displayName","givenName","sn","mail","supannEmpId","supannEtuId","supannCivilite","uid","udlCategories","udlFonction","modifyTimestamp"};
 			/* Utilisation du ldap de lecture pour nombre de résultat illimité */
 			l = ldapTemplateRead.search(BASE_DN, filter, SearchScope.ONELEVEL.getId(), attributes, getContextMapper());
 				//search(BASE_DN, filter,SearchScope.ONELEVEL, attributes, getContextMapper());
@@ -182,6 +182,7 @@ public class LdapPeopleServiceImpl implements LdapGenericService<PeopleLdap> {
 		addAttributToContext("modifyTimestamp", o.getModifyTimestamp(), context);
 		addAttributToContext("uid", o.getUid(), context);
 		addAttributToContext("udlCategories", o.getUdlCategories(), context);
+		addAttributToContext("udlFonction", o.getUdlFonction(), context);
 	}
 
 	@Override
@@ -207,6 +208,7 @@ public class LdapPeopleServiceImpl implements LdapGenericService<PeopleLdap> {
 			o.setModifyTimestamp(context.getStringAttribute("modifyTimestamp"));
 			o.setUid(context.getStringAttribute("uid"));
 			o.setUdlCategories(context.getStringAttributes("udlCategories"));
+			o.setUdlFonction(context.getStringAttributes("udlFonction"));
 			return o;
 		}
 	}
