@@ -206,6 +206,8 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 		
 		buttonCsv.addThemeVariants(ButtonVariant.LUMO_CONTRAST);
 		buttonCsv.addClickListener(event -> uploadCsv());
+		// On masque le bouton pour l'instant
+		buttonCsv.setVisible(false);
 		buttonsLayout.add(buttonCsv);
 		
 		add(buttonsLayout);
