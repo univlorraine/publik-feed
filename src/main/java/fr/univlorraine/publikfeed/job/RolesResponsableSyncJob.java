@@ -45,6 +45,12 @@ public class RolesResponsableSyncJob {
 	@Value("${publik.default.resp.role.vide}")
 	private transient String defaultUsers;
 	
+	@Value("${filtre.respsyncjob}")
+	private transient String filtreRespSyncJob;
+	
+	@Value("${filtre.strrespsyncjob}")
+	private transient String filtreStrRespSyncJob;
+	
 	@Resource
 	private UserPublikController userPublikController;
 
@@ -99,7 +105,7 @@ public class RolesResponsableSyncJob {
 			}
 
 			// Filtre ldap qui recupère les personnes avec des roles de type A , 1 ou 2 ayant été mis à jour depuis le derniere run
-			String filtre = "(&(uid=*)(|(udlFonction=*[type=A]*)(udlFonction=*[type=1]*)(udlFonction=*[type=2]*)))";
+			String filtre = filtreRespSyncJob;
 
 			HashMap<String, List<String>> mapResponsables = new HashMap<String, List<String>> ();
 
@@ -158,7 +164,7 @@ public class RolesResponsableSyncJob {
 						
 						// Récupération des structures
 						String dateInstant = Utils.formatDateToLdap(LocalDateTime.now());
-						String filtreStr = "(&(supannCodeEntite=*)(udlDateExpire>="+dateInstant+"))";
+						String filtreStr = "(&"+filtreStrRespSyncJob+"(udlDateExpire>="+dateInstant+"))";
 						log.info("execution du filtre ldap {} ...", filtreStr);
 						List<StructureLdap> ls = ldapStructureService.findEntitiesByFilter(filtreStr);
 						log.info("{} structures actives dans le ldap", ls.size());
