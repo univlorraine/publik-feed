@@ -1,37 +1,6 @@
 include:
   - project: 'dn-sied/ci-config'
-    file: '/.gitlab-ci-template-with-selenium-standalone-chrome.yml'
+    file: '/.gitlab-ci-template.yml'
 
 variables:
-  MAVEN_ADDITIONAL_CLI_OPTS: "-Pproduction"
-
-cache:
-  paths:
-    - .m2/repository
-    - .vaadin
-
-.init-vaadin-dir: &init-vaadin-dir
-    - mkdir -p $CI_PROJECT_DIR/.vaadin
-    - ln -s $CI_PROJECT_DIR/.vaadin ~/.vaadin
-
-build:
-  before_script:
-    - *init-vaadin-dir
-
-release:
-  before_script:
-    - *init-vaadin-dir
-
-.tests-job-template:
-  services:
-    - name: selenium/standalone-chrome:latest
-    - name: mysql:5
-  variables:
-    START_XVFB: "false"
-    SELENIUM_REMOTE_URL: "http://selenium-standalone-chrome:4444/wd/hub"
-    MYSQL_DATABASE: "publikfeed"
-    MYSQL_RANDOM_ROOT_PASSWORD: "yes"
-    MYSQL_USER: "ci-mysql-user"
-    MYSQL_PASSWORD: "ci-mysql-pwd"
-    MYSQL_URL: "jdbc:mysql://mysql:3306/${MYSQL_DATABASE}?serverTimezone=Europe/Paris"
-  resource_group: selenium-standalone-chrome
+  MAVEN_ADDITIONAL_CLI_OPTS: "-Pproduction -Dmaven.test.skip=true -Dspring-boot.run.profiles=test"
