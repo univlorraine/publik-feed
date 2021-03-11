@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
+import java.util.Map.Entry;
 import java.util.function.Predicate;
 
 import javax.annotation.Resource;
@@ -14,11 +16,12 @@ import org.springframework.stereotype.Component;
 
 import fr.univlorraine.publikfeed.json.entity.ListUuidJson;
 import fr.univlorraine.publikfeed.json.entity.RoleJson;
-import fr.univlorraine.publikfeed.json.entity.UuidJson;
 import fr.univlorraine.publikfeed.ldap.entity.PeopleLdap;
 import fr.univlorraine.publikfeed.ldap.services.LdapGenericService;
 import fr.univlorraine.publikfeed.model.app.entity.RoleManuel;
+import fr.univlorraine.publikfeed.model.app.entity.RoleResp;
 import fr.univlorraine.publikfeed.model.app.services.RoleManuelService;
+import fr.univlorraine.publikfeed.model.app.services.RoleRespService;
 import fr.univlorraine.publikfeed.model.app.services.UserHisService;
 import fr.univlorraine.publikfeed.publik.entity.AddUserToRoleResponsePublikApi;
 import fr.univlorraine.publikfeed.publik.entity.RolePublikApi;
@@ -40,6 +43,9 @@ public class RolePublikController {
 	
 	@Resource
 	private RoleManuelService roleManuelService;
+	
+	@Resource
+	private RoleRespService roleRespService;
 	
 	@Resource
 	private LdapGenericService<PeopleLdap> ldapPeopleService;
@@ -208,6 +214,93 @@ public class RolePublikController {
 		} else {
 			log.info("La population du role {} est déjà à jour dans Publik", role.getId());
 		}
+	}
+
+	public void syncRoleResp(Entry<String, List<String>> structure) {
+
+		Optional<RoleResp> role = roleRespService.findRole(structure.getKey());
+		RoleResp r = null;
+		// Si le role n'était pas déjà dans la base
+		if(!role.isPresent()) {
+			r = new RoleResp();
+			r.setCodStr(structure.getKey());
+		} else {
+			r = role.get();
+		}
+		// On trie de la liste pour avoir un hash identique si la liste contient les même éléments
+		Collections.sort(structure.getValue());
+		r.setLogins(String.join(",", structure.getValue()));
+		r.setDatMaj(LocalDateTime.now());
+		// Maj des logins dans la base
+		r = roleRespService.saveRole(r);
+
+		// calcul de la liste des uuids des resp
+		List<String> uuids = new LinkedList<String> ();
+		for(String login : structure.getValue()) {
+			//recuperation du uuid
+			String uuid = userHisService.getUuidFromLogin(login);
+			if(uuid != null) {
+				// Ajout du login à la liste
+				uuids.add(uuid);
+			}
+		}
+		// On trie de la liste pour avoir un hash identique si la liste contient les même éléments
+		Collections.sort(uuids);
+
+		log.info("{} users dans le groupe {}", uuids.size(), r.getCodStr());
+
+		//Creation de l'objet Json correspondant à la liste
+		ListUuidJson data = Utils.getListUuidJson(uuids);
+
+		// Creation du hash
+		String hash = Utils.getHash(data);
+
+		log.info("Hash du role resp {} : {}", r.getCodStr(), hash);
+		boolean newRole = false;
+
+		// Si le role n'est pas dans Publik
+		if(r.getDatCrePublik()==null) {
+			log.info("Role {} est nouveau. Il doit etre cree dans Publik", r.getCodStr());
+			RoleJson rj = new RoleJson();
+			rj.setName(Utils.PREFIX_ROLE_RESP + r.getCodStr().toUpperCase());
+			// Creation dans Publik si necessaire
+			RolePublikApi rolePublik = rolePublikApiService.createRole(rj);
+
+			log.info("Role {} créé dans Publik", r.getCodStr());
+
+			newRole = true;
+			// maj BDD
+			r.setUuid(rolePublik.getUuid());
+			r.setSlug(rolePublik.getSlug());
+			r.setOu(rolePublik.getOu());
+			r.setDatCrePublik(LocalDateTime.now());
+			r = roleRespService.saveRole(r);
+
+			log.info("Uuid du Role {} sauvegardé dans la base : ", r.getCodStr(), r.getUuid());
+
+		}
+
+		// Si nouvau role ou si le hash est different
+		if(newRole || (r.getHash()==null && hash!=null) || (r.getHash()!=null && hash==null) || !r.getHash().equals(hash)) {
+
+			log.info("La population du role {} doit être mise à jour dans Publik", r.getCodStr());
+			// Ajout/maj des personnes dans publik
+			AddUserToRoleResponsePublikApi response = rolePublikApiService.setUsersToRole(r.getUuid(), data);
+
+			log.info("Users Role {} ont été mis à jour dans Publik : ", r.getCodStr());
+
+			// Si l'appel à l'API Publik s'est bien passé
+			if(response!=null && response.getResult()==1) {
+				// Maj de la date et du hash dans la base
+				r.setDatMajPublik(LocalDateTime.now());
+				r.setHash(hash);
+				r = roleRespService.saveRole(r);
+				log.info("Hash du Role {} sauvegardé dans la base : ", r.getCodStr(), r.getHash());
+			}
+		} else {
+			log.info("La population du role {} est déjà à jour dans Publik", r.getCodStr());
+		}
+		
 	}
  
 }
