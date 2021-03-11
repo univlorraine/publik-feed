@@ -84,7 +84,9 @@ public class RolesResponsableSyncJob {
 			String filtre = filtreRespSyncJob;
 
 			HashMap<String, List<String>> mapResponsables = new HashMap<String, List<String>> ();
-
+			
+			HashMap<String, String> mapLibelle = new HashMap<String, String> ();
+ 
 			// Execution du filtre ldap
 			try {
 				log.info("execution du filtre ldap {} ...", filtre);
@@ -155,6 +157,9 @@ public class RolesResponsableSyncJob {
 						for(StructureLdap s : ls) {
 							String codeStr = s.getSupannCodeEntite().replaceFirst("\\{LOC\\}", "");
 
+							// On conserve le libellé
+							mapLibelle.put(codeStr, s.getUdlLibelleAffichage());
+							
 							// Si la structure est non présente dans la map
 							if(mapResponsables.containsKey(codeStr)) {
 								log.debug("Structure {} : {} deja dans la map",codeStr, s.getUdlLibelleAffichage());
@@ -177,9 +182,9 @@ public class RolesResponsableSyncJob {
 
 
 							try {
-								
+								String libelle = mapLibelle.get(structure.getKey());
 								// Maj du role dans la base et dans Publik
-								rolePublikController.syncRoleResp(structure);
+								rolePublikController.syncRoleResp(structure, libelle);
 
 
 								// Incrément du nombre d'objet traités

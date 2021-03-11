@@ -69,7 +69,7 @@ public class RoleRespView extends VerticalLayout implements HasDynamicTitle, Has
 		.setAutoWidth(true)
 		.setFrozen(true)
 		.setResizable(true).setHeader("ID");
-	private final Column<RoleResp> libelleColumn = rolesGrid.addColumn(r -> r.getCodStr())
+	private final Column<RoleResp> libelleColumn = rolesGrid.addColumn(r -> r.getLibelle())
 		.setFlexGrow(1)
 		.setAutoWidth(true).setHeader("Libellé");
 	private final Column<RoleResp> selectorColumn = rolesGrid.addComponentColumn(r -> getStateColumn(r))

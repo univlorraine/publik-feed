@@ -216,7 +216,7 @@ public class RolePublikController {
 		}
 	}
 
-	public void syncRoleResp(Entry<String, List<String>> structure) {
+	public void syncRoleResp(Entry<String, List<String>> structure, String libelle) {
 
 		Optional<RoleResp> role = roleRespService.findRole(structure.getKey());
 		RoleResp r = null;
@@ -224,8 +224,11 @@ public class RolePublikController {
 		if(!role.isPresent()) {
 			r = new RoleResp();
 			r.setCodStr(structure.getKey());
+			r.setLibelle(libelle);
 		} else {
 			r = role.get();
+			// maj du libellé au cas ou
+			r.setLibelle(libelle);
 		}
 		// On trie de la liste pour avoir un hash identique si la liste contient les même éléments
 		Collections.sort(structure.getValue());
