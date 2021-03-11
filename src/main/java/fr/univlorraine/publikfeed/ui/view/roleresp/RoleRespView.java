@@ -215,10 +215,10 @@ public class RoleRespView extends VerticalLayout implements HasDynamicTitle, Has
 		
 		champRecherche.setAutofocus(true);
 		champRecherche.setWidth("300px");
-		//champRecherche.setLabel("Search");
-		champRecherche.addKeyUpListener( e -> {
-			dataProvider.addFilter(role -> StringUtils.containsIgnoreCase(
-                String.valueOf(role.getLibelle()), champRecherche.getValue()));
+		champRecherche.setClearButtonVisible(true);
+		champRecherche.addValueChangeListener( e -> {
+			dataProvider.addFilter(role -> StringUtils.containsIgnoreCase(String.valueOf(role.getLibelle()), champRecherche.getValue())
+				|| StringUtils.containsIgnoreCase(String.valueOf(role.getCodStr()), champRecherche.getValue()));
 		});
 		buttonsLayout.add(champRecherche);
 		
