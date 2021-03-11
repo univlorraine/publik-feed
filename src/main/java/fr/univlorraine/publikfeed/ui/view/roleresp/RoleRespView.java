@@ -8,6 +8,7 @@ import java.util.concurrent.Executors;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.vaadin.flow.component.Component;
@@ -24,7 +25,9 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.provider.ConfigurableFilterDataProvider;
 import com.vaadin.flow.data.provider.DataProvider;
+import com.vaadin.flow.data.provider.ListDataProvider;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.i18n.LocaleChangeEvent;
 import com.vaadin.flow.i18n.LocaleChangeObserver;
@@ -61,6 +64,7 @@ public class RoleRespView extends VerticalLayout implements HasDynamicTitle, Has
 	private final TextHeader header = new TextHeader();
 
 	private final Button button = new Button();
+	private final TextField champRecherche = new TextField();
 	private final Button buttonCsv = new Button();
 	
 	private final Grid<RoleResp> rolesGrid = new Grid<>();
@@ -76,9 +80,11 @@ public class RoleRespView extends VerticalLayout implements HasDynamicTitle, Has
 		.setFlexGrow(1)
 		.setAutoWidth(true).setHeader("Etat");
 
-
+	
 
 	List<RoleResp> listRoles;
+	
+	ListDataProvider<RoleResp> dataProvider;
 
 	@PostConstruct
 	public void init() {
@@ -188,7 +194,8 @@ public class RoleRespView extends VerticalLayout implements HasDynamicTitle, Has
 		rolesGrid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
 
 		listRoles = roleRespService.findAll();
-		rolesGrid.setDataProvider(DataProvider.ofCollection(listRoles));
+		dataProvider = new ListDataProvider<>(listRoles);
+		rolesGrid.setDataProvider(dataProvider);
 
 		add(rolesGrid);
 	}
@@ -205,6 +212,16 @@ public class RoleRespView extends VerticalLayout implements HasDynamicTitle, Has
 		buttonCsv.setVisible(false);
 		buttonsLayout.add(buttonCsv);
 		
+		
+		champRecherche.setAutofocus(true);
+		champRecherche.setWidth("300px");
+		//champRecherche.setLabel("Search");
+		champRecherche.addKeyUpListener( e -> {
+			dataProvider.addFilter(role -> StringUtils.containsIgnoreCase(
+                String.valueOf(role.getLibelle()), champRecherche.getValue()));
+		});
+		buttonsLayout.add(champRecherche);
+		
 		add(buttonsLayout);
 	}
 	
@@ -214,7 +231,8 @@ public class RoleRespView extends VerticalLayout implements HasDynamicTitle, Has
 
 	private void updateRole() {
 		listRoles = roleRespService.findAll();
-		rolesGrid.setDataProvider(DataProvider.ofCollection(listRoles));
+		dataProvider = DataProvider.ofCollection(listRoles);
+		rolesGrid.setDataProvider(dataProvider);
 	}
 
 
