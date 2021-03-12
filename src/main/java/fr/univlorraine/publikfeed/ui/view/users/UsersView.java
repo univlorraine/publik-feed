@@ -128,7 +128,7 @@ public class UsersView extends VerticalLayout implements HasDynamicTitle, HasHea
 		usersGrid.setSelectionMode(SelectionMode.NONE);
 		usersGrid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
 
-		updateUsers();
+		updateUsers(null);
 
 		add(usersGrid);
 	}
@@ -143,8 +143,9 @@ public class UsersView extends VerticalLayout implements HasDynamicTitle, HasHea
 		champRecherche.setWidth("300px");
 		champRecherche.setClearButtonVisible(true);
 		champRecherche.addValueChangeListener( e -> {
-			dataProvider.addFilter(role -> StringUtils.containsIgnoreCase(String.valueOf(role.getLogin()), champRecherche.getValue())
-				|| StringUtils.containsIgnoreCase(String.valueOf(role.getData()), champRecherche.getValue()));
+			/*dataProvider.addFilter(role -> StringUtils.containsIgnoreCase(String.valueOf(role.getLogin()), champRecherche.getValue())
+				|| StringUtils.containsIgnoreCase(String.valueOf(role.getData()), champRecherche.getValue()));*/
+			updateUsers(champRecherche.getValue());
 		});
 		buttonsLayout.add(champRecherche);
 		
@@ -167,8 +168,12 @@ public class UsersView extends VerticalLayout implements HasDynamicTitle, HasHea
 		Notification.show(getTranslation("Users.clicked", LocalTime.now()));
 	}
 
-	private void updateUsers() {
-		listUsers = userHisService.findAll();
+	private void updateUsers(String search) {
+		if(search==null) {
+			listUsers = userHisService.findAll();
+		} else {
+			listUsers = userHisService.findFor(search);
+		}
 		dataProvider = DataProvider.ofCollection(listUsers);
 		usersGrid.setDataProvider(dataProvider);
 	}
@@ -176,7 +181,7 @@ public class UsersView extends VerticalLayout implements HasDynamicTitle, HasHea
 
 	private void notifyClicked() {
 		Notification.show(getTranslation("Users.clicked", LocalTime.now()));
-		updateUsers();
+		updateUsers(null);
 	}
 
 	/**
