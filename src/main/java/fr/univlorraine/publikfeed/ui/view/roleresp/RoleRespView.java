@@ -25,7 +25,6 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.data.provider.ConfigurableFilterDataProvider;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.ListDataProvider;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
@@ -63,9 +62,8 @@ public class RoleRespView extends VerticalLayout implements HasDynamicTitle, Has
 	@Getter
 	private final TextHeader header = new TextHeader();
 
-	private final Button button = new Button();
+	private final Button refreshButton = new Button();
 	private final TextField champRecherche = new TextField();
-	private final Button buttonCsv = new Button();
 	
 	private final Grid<RoleResp> rolesGrid = new Grid<>();
 	private final Column<RoleResp> codeColumn = rolesGrid.addComponentColumn(r -> getIdAndButtonColumn(r))
@@ -193,25 +191,18 @@ public class RoleRespView extends VerticalLayout implements HasDynamicTitle, Has
 		rolesGrid.setSelectionMode(SelectionMode.NONE);
 		rolesGrid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
 
-		listRoles = roleRespService.findAll();
-		dataProvider = new ListDataProvider<>(listRoles);
-		rolesGrid.setDataProvider(dataProvider);
+		updateRole();
 
 		add(rolesGrid);
 	}
 
 	private void initJobs() {
 		HorizontalLayout buttonsLayout = new HorizontalLayout();
-		button.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-		button.addClickListener(event -> notifyClicked());
-		buttonsLayout.add(button);
+		refreshButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+		refreshButton.addClickListener(event -> notifyClicked());
+		buttonsLayout.add(refreshButton);
 		
-		buttonCsv.addThemeVariants(ButtonVariant.LUMO_CONTRAST);
-		buttonCsv.addClickListener(event -> uploadCsv());
-		// On masque le bouton pour l'instant
-		buttonCsv.setVisible(false);
-		buttonsLayout.add(buttonCsv);
-		
+
 		
 		champRecherche.setAutofocus(true);
 		champRecherche.setWidth("300px");
@@ -248,8 +239,8 @@ public class RoleRespView extends VerticalLayout implements HasDynamicTitle, Has
 	public void localeChange(final LocaleChangeEvent event) {
 		setViewTitle(getTranslation("roleresp.title"));
 
-		button.setText(getTranslation("roleresp.refresh"));
-		buttonCsv.setText(getTranslation("roleresp.csv"));
+		refreshButton.setText(getTranslation("roleresp.refresh"));
+
 	}
 
 	private void setViewTitle(final String viewTitle) {

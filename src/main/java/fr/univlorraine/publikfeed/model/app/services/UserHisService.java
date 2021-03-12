@@ -1,6 +1,7 @@
 package fr.univlorraine.publikfeed.model.app.services;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Optional;
 
 import javax.annotation.Resource;
@@ -41,6 +42,10 @@ public class UserHisService implements Serializable {
 			}
 		}
 		return null;
+	}
+
+	public List<UserHis> findAll() {
+		return userHisRepository.findAllByOrderByLogin();
 	}
 	
 	

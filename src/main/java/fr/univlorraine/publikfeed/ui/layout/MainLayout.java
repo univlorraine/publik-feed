@@ -43,6 +43,7 @@ import fr.univlorraine.publikfeed.ui.view.connexions.ConnexionsView;
 import fr.univlorraine.publikfeed.ui.view.main.MainView;
 import fr.univlorraine.publikfeed.ui.view.rolemanuel.RoleManuelView;
 import fr.univlorraine.publikfeed.ui.view.roleresp.RoleRespView;
+import fr.univlorraine.publikfeed.ui.view.users.UsersView;
 import fr.univlorraine.publikfeed.config.SecurityConfig;
 import fr.univlorraine.publikfeed.model.app.entity.Utilisateur;
 import fr.univlorraine.publikfeed.utils.ReactiveUtils;
@@ -112,6 +113,7 @@ public class MainLayout extends AppLayout implements PageConfigurator, BeforeEnt
 		addDrawerRouterLink(VaadinIcon.HOME, "home.title", MainView.class);
 		addDrawerRouterLink(VaadinIcon.USERS, "rolemanuel.title", RoleManuelView.class);
 		addDrawerRouterLink(VaadinIcon.USER_STAR, "roleresp.title", RoleRespView.class);
+		addDrawerRouterLink(VaadinIcon.USER, "users.title", UsersView.class);
 		addDrawerRouterLink(VaadinIcon.BAR_CHART_H, "connexions.title", ConnexionsView.class);
 		if (!docUrl.isBlank()) {
 			addDrawerHrefLink(VaadinIcon.BOOK, "menu.doc", docUrl, true);
