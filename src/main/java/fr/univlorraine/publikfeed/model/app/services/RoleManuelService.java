@@ -50,13 +50,13 @@ public class RoleManuelService implements Serializable {
 		return roleManuelRepository.findAll();
 	}
 
-	public String updateLibelle(RoleManuel r, String value) {
+	public RoleManuel updateLibelle(RoleManuel r, String value) {
 		Optional<RoleManuel> role = findRole(r.getId());
 		if(role.isPresent()) {
 			role.get().setLibelle(value);
 			r = saveRole(role.get());
 		}
-		return r.getLibelle();
+		return r;
 	}
 
 	public RoleManuel updateFiltreAndLogins(RoleManuel r, String filtre, String logins, Boolean actif) {

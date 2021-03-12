@@ -137,11 +137,8 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 
 		validButton.addClickListener(e -> {
 			try {
-				String newLibelle = roleManuelService.updateLibelle(r, libelleField.getValue());
-				libelleField.setValue(newLibelle);
-				libelleField.setReadOnly(true);
-				editButton.setVisible(true);
-				validButton.setVisible(false);
+				RoleManuel updatedRole = roleManuelService.updateLibelle(r, libelleField.getValue());
+				rolesGrid.getDataProvider().refreshItem(updatedRole);
 				Notification.show(getTranslation("maj.ok.notif", LocalTime.now()));
 			} catch(Exception ex) {
 				Notification notification = new Notification();
@@ -251,7 +248,6 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 			loginsField.setReadOnly(false);
 			editButton.setVisible(false);
 			validButton.setVisible(true);
-			//checkBox.setValue(r.getDatSup() == null);
 			checkBox.setVisible(true);
 		});
 		
@@ -260,17 +256,10 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 		validButton.addClickListener(e -> {
 			try {
 				RoleManuel updatedRole = roleManuelService.updateFiltreAndLogins(r, filtreField.getValue(), loginsField.getValue(), checkBox.getValue());
-				filtreField.setValue(updatedRole.getFiltre() != null ? updatedRole.getFiltre() : "");
-				filtreField.setReadOnly(true);
-				loginsField.setValue(updatedRole.getLogins() != null ? updatedRole.getLogins() : "");
-				loginsField.setReadOnly(true);
-				dateMajField.setValue(updatedRole.getDatMaj() != null ? Utils.formatDateForDisplay(updatedRole.getDatMaj()) : "");
-				dateSupField.setValue(updatedRole.getDatSup() != null ? Utils.formatDateForDisplay(updatedRole.getDatSup()) : "");
-				editButton.setVisible(true);
-				validButton.setVisible(false);
-				checkBox.setValue(updatedRole.getDatSup() == null);
-				checkBox.setVisible(false);
+				rolesGrid.getDataProvider().refreshItem(updatedRole);
 				Notification.show(getTranslation("maj.ok.notif", LocalTime.now()));
+				
+				
 			} catch(Exception ex) {
 				Notification notification = new Notification();
 				notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
