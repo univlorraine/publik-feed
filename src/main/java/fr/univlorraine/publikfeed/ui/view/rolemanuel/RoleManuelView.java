@@ -1,5 +1,6 @@
 package fr.univlorraine.publikfeed.ui.view.rolemanuel;
 
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -9,6 +10,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
 import org.apache.commons.lang3.StringUtils;
+import org.aspectj.weaver.patterns.IfPointcut.IfFalsePointcut;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.vaadin.flow.component.Component;
@@ -16,17 +18,20 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.Grid.Column;
 import com.vaadin.flow.component.grid.Grid.SelectionMode;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.menubar.MenuBarVariant;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.Notification.Position;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.Autocapitalize;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.ListDataProvider;
@@ -35,6 +40,7 @@ import com.vaadin.flow.i18n.LocaleChangeEvent;
 import com.vaadin.flow.i18n.LocaleChangeObserver;
 import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.theme.Theme;
 
 import fr.univlorraine.publikfeed.job.services.JobLauncher;
 import fr.univlorraine.publikfeed.model.app.entity.RoleManuel;
@@ -68,9 +74,17 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 	private final TextHeader header = new TextHeader();
 
 	private final Button button = new Button();
+	FormLayout addLayout = new FormLayout();
 	private final Button buttonNew = new Button();
+	private final Button buttonCancel= new Button();
+	private final Button buttonCreate= new Button();
 	private final TextField champRecherche = new TextField();
 	private final Button buttonCsv = new Button();
+
+	TextField idField = new TextField();
+	TextField libField = new TextField();
+	TextField filtreField = new TextField();
+	TextField loginsField = new TextField();
 
 	private final Grid<RoleManuel> rolesGrid = new Grid<>();
 	private final Column<RoleManuel> codeColumn = rolesGrid.addComponentColumn(r -> getIdAndButtonColumn(r))
@@ -94,6 +108,7 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 	@PostConstruct
 	public void init() {
 		initJobs();
+		initAddForm();
 		initGrid();
 		rolesGrid.setItemDetailsRenderer(new ComponentRenderer<>(r -> {
 			return getDetailColumn(r);
@@ -239,7 +254,7 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 		checkBox.setLabel("Actif");
 		checkBox.setValue(r.getDatSup() == null);
 		checkBox.setVisible(false);
-		
+
 		Button editButton = new Button();
 		editButton.setText("Editer");
 		editButton.setIcon(VaadinIcon.PENCIL.create());
@@ -250,16 +265,16 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 			validButton.setVisible(true);
 			checkBox.setVisible(true);
 		});
-		
-		
-		
+
+
+
 		validButton.addClickListener(e -> {
 			try {
 				RoleManuel updatedRole = roleManuelService.updateFiltreAndLogins(r, filtreField.getValue(), loginsField.getValue(), checkBox.getValue());
 				rolesGrid.getDataProvider().refreshItem(updatedRole);
 				Notification.show(getTranslation("maj.ok.notif", LocalTime.now()));
-				
-				
+
+
 			} catch(Exception ex) {
 				Notification notification = new Notification();
 				notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
@@ -269,7 +284,7 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 		});
 
 		detailLayout.add(publikLayout);
-		
+
 		HorizontalLayout editBtnLayout = new HorizontalLayout();
 		editBtnLayout.add(editButton);
 		editBtnLayout.add(validButton);
@@ -279,15 +294,69 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 		return detailLayout;
 	}
 
+	private void initAddForm() {
+
+		idField.setLabel("ID");
+		idField.setPlaceholder("Identifiant");
+		idField.setRequired(true);
+
+		libField.setLabel("Libellé");
+		libField.setPlaceholder("Description");
+		libField.setRequired(true);
+
+		filtreField.setLabel("Filtre");
+		filtreField.setPlaceholder("filtre ldap");
+
+		loginsField.setLabel("Logins");
+		loginsField.setPlaceholder("liste de logins séparés par une virgule");
+
+		idField.addValueChangeListener(e-> {
+			if(idField.getValue()!=null) {
+				idField.setValue(idField.getValue().toUpperCase());
+			}
+			majFormData();
+		});
+		libField.addValueChangeListener(e-> {
+			majFormData();
+		});
+		filtreField.addValueChangeListener(e-> {
+			majFormData();
+		});
+		loginsField.addValueChangeListener(e-> {
+			majFormData();
+		});
+
+		addLayout.add(idField, libField, filtreField, loginsField);
+		addLayout.setVisible(false);
+
+		add(addLayout);
+	}
+
+	private void majFormData() {
+		if(formHasAllRequiredValues()) {
+			buttonCreate.setEnabled(true);
+		} else {
+			buttonCreate.setEnabled(false);
+		}
+
+	}
+
+
+	private boolean formHasAllRequiredValues() {
+		return (!StringUtils.isBlank(idField.getValue())
+			&& !StringUtils.isBlank(libField.getValue()) 
+			&& (!StringUtils.isBlank(filtreField.getValue()) 
+				|| !StringUtils.isBlank(loginsField.getValue()) ));
+	}
+
+
 	private void initGrid() {
 
 		rolesGrid.setHeightFull();
 		rolesGrid.setSelectionMode(SelectionMode.NONE);
 		rolesGrid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
 
-		listRoles = roleManuelService.findAll();
-		dataProvider = new ListDataProvider<>(listRoles);
-		rolesGrid.setDataProvider(dataProvider);
+		updateRole();
 
 		add(rolesGrid);
 	}
@@ -315,13 +384,97 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 
 		buttonNew.setText("Nouveau rôle");
 		buttonNew.setIcon(VaadinIcon.PLUS.create());
-		buttonNew.addClickListener(event -> addRole());
+		buttonNew.addClickListener(event -> {
+			addLayout.setVisible(true);
+			buttonCancel.setVisible(true);
+			buttonCreate.setVisible(true);
+			buttonCreate.setEnabled(false);
+			buttonNew.setVisible(false);
+		});
 		buttonsLayout.add(buttonNew);
+
+		buttonCancel.setText("Annuler");
+		buttonCancel.setIcon(VaadinIcon.ARROW_BACKWARD.create());
+		buttonCancel.addClickListener(event -> {
+			addLayout.setVisible(false);
+			buttonCancel.setVisible(false);
+			buttonCreate.setVisible(false);
+			buttonNew.setVisible(true);
+		});
+		buttonCancel.setVisible(false);
+		buttonsLayout.add(buttonCancel);
+
+		buttonCreate.setText("Créer le rôle");
+		buttonCreate.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
+		buttonCreate.setIcon(VaadinIcon.CHECK.create());
+		buttonCreate.addClickListener(event -> {
+			if(formHasAllRequiredValues()) {
+				RoleManuel role = creerRoleManuel();
+				if(role!=null) {
+					Notification.show("Création effectuée");
+					addLayout.setVisible(false);
+					buttonCancel.setVisible(false);
+					buttonCreate.setVisible(false);
+					buttonNew.setVisible(true);
+					updateRole();
+				} else {
+					Notification.show("La création a échouée");
+				}
+			} else {
+				Notification.show("Certaines valeurs sont manquantes.");
+			}
+
+		});
+		buttonCreate.setVisible(false);
+		buttonsLayout.add(buttonCreate);
 
 		add(buttonsLayout);
 	}
 
-	private Object addRole() {
+	private RoleManuel creerRoleManuel() {
+		boolean ko = false;
+		if(StringUtils.isBlank(idField.getValue()) || !idField.getValue().matches("[0-9A-Z][0-9A-Z_]*[0-9A-Z]")) {
+			Notification.show("L'id n'est pas valide");
+			ko = true;
+		}
+		if(!StringUtils.isBlank(filtreField.getValue()) && filtreField.getValue().contains(" ")) {
+			Notification.show("Le filtre ne doit pas contenir d'espace");
+			ko = true;
+		}
+		if(!StringUtils.isBlank(loginsField.getValue()) && loginsField.getValue().contains(" ")) {
+			Notification.show("La liste de login ne doit pas contenir d'espace");
+			ko = true;
+		}
+		if(ko) {
+			return null;
+		}
+		
+		// creer le role et refreshAll
+		RoleManuel newRole = new RoleManuel();
+		newRole.setId(idField.getValue());
+		newRole.setLibelle(libField.getValue());
+		if(!StringUtils.isBlank(filtreField.getValue())) {
+			newRole.setFiltre(filtreField.getValue());
+		}
+		if(!StringUtils.isBlank(loginsField.getValue())) {
+			newRole.setLogins(loginsField.getValue());
+		}
+		newRole.setDatMaj(LocalDateTime.now());
+		newRole = roleManuelService.saveRole(newRole);
+		
+		// reset formulaire si création ok
+		idField.clear();
+		libField.clear();
+		filtreField.clear();
+		loginsField.clear();
+		
+		return newRole;
+		
+		
+	}
+
+
+	private RoleManuel addRole() {
 		// TODO popup ajout role
 		return null;
 	}
@@ -332,8 +485,9 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 	}
 
 	private void updateRole() {
-		listRoles = roleManuelService.findAll();
-		rolesGrid.setDataProvider(DataProvider.ofCollection(listRoles));
+		listRoles = roleManuelService.findAllOrderByDateMaj();
+		dataProvider = new ListDataProvider<>(listRoles);
+		rolesGrid.setDataProvider(dataProvider);
 	}
 
 

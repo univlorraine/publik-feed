@@ -19,4 +19,6 @@ public interface RoleManuelRepository extends JpaSpecificationExecutor<RoleManue
 
 	public List<RoleManuel> findAll();
 
+	public List<RoleManuel> findAllByOrderByDatMajDesc();
+
 }

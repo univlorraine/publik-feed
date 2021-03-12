@@ -49,6 +49,12 @@ public class RoleManuelService implements Serializable {
 	public List<RoleManuel> findAll() {
 		return roleManuelRepository.findAll();
 	}
+	
+	public List<RoleManuel> findAllOrderByDateMaj() {
+		return roleManuelRepository.findAllByOrderByDatMajDesc();
+	}
+	
+	
 
 	public RoleManuel updateLibelle(RoleManuel r, String value) {
 		Optional<RoleManuel> role = findRole(r.getId());
