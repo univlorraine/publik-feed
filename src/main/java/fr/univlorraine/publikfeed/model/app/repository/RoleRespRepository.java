@@ -19,4 +19,6 @@ public interface RoleRespRepository extends JpaSpecificationExecutor<RoleResp>, 
 
 	public List<RoleResp> findAll();
 
+	public List<RoleResp> findByLibelleContainingIgnoreCaseOrCodStrContainingIgnoreCase(String search, String search2);
+
 }

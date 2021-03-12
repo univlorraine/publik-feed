@@ -21,4 +21,6 @@ public interface RoleManuelRepository extends JpaSpecificationExecutor<RoleManue
 
 	public List<RoleManuel> findAllByOrderByDatMajDesc();
 
+	public List<RoleManuel> findByLibelleContainingIgnoreCaseOrIdContainingIgnoreCase(String search, String search2);
+
 }

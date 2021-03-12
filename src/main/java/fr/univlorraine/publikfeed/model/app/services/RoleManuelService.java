@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import fr.univlorraine.publikfeed.model.app.entity.RoleManuel;
+import fr.univlorraine.publikfeed.model.app.entity.RoleResp;
 import fr.univlorraine.publikfeed.model.app.repository.RoleManuelRepository;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -80,6 +81,12 @@ public class RoleManuelService implements Serializable {
 			r = saveRole(role.get());
 		}
 		return r;
+	}
+
+
+	
+	public List<RoleManuel> findFor(String search) {
+		return roleManuelRepository.findByLibelleContainingIgnoreCaseOrIdContainingIgnoreCase(search, search);
 	}
 
 

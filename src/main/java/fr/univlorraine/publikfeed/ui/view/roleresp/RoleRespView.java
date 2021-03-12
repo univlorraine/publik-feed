@@ -191,7 +191,7 @@ public class RoleRespView extends VerticalLayout implements HasDynamicTitle, Has
 		rolesGrid.setSelectionMode(SelectionMode.NONE);
 		rolesGrid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
 
-		updateRole();
+		updateRole(null);
 
 		add(rolesGrid);
 	}
@@ -208,28 +208,30 @@ public class RoleRespView extends VerticalLayout implements HasDynamicTitle, Has
 		champRecherche.setWidth("300px");
 		champRecherche.setClearButtonVisible(true);
 		champRecherche.addValueChangeListener( e -> {
-			dataProvider.addFilter(role -> StringUtils.containsIgnoreCase(String.valueOf(role.getLibelle()), champRecherche.getValue())
-				|| StringUtils.containsIgnoreCase(String.valueOf(role.getCodStr()), champRecherche.getValue()));
+			/*dataProvider.addFilter(role -> StringUtils.containsIgnoreCase(String.valueOf(role.getLibelle()), champRecherche.getValue())
+				|| StringUtils.containsIgnoreCase(String.valueOf(role.getCodStr()), champRecherche.getValue()));*/
+			updateRole(champRecherche.getValue());
 		});
 		buttonsLayout.add(champRecherche);
 		
 		add(buttonsLayout);
 	}
 	
-	private void uploadCsv() {
-		Notification.show(getTranslation("RoleResp.clicked", LocalTime.now()));
-	}
 
-	private void updateRole() {
-		listRoles = roleRespService.findAll();
+	private void updateRole(String search) {
+		if(search==null) {
+			listRoles = roleRespService.findAll();
+		} else {
+			listRoles = roleRespService.findFor(search);
+		}
 		dataProvider = DataProvider.ofCollection(listRoles);
 		rolesGrid.setDataProvider(dataProvider);
 	}
 
 
 	private void notifyClicked() {
-		Notification.show(getTranslation("RoleResp.clicked", LocalTime.now()));
-		updateRole();
+		Notification.show(getTranslation("roleresp.clicked", LocalTime.now()));
+		updateRole(champRecherche.getValue());
 	}
 
 	/**

@@ -356,7 +356,7 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 		rolesGrid.setSelectionMode(SelectionMode.NONE);
 		rolesGrid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
 
-		updateRole();
+		updateRole(null);
 
 		add(rolesGrid);
 	}
@@ -377,8 +377,9 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 		champRecherche.setWidth("300px");
 		champRecherche.setClearButtonVisible(true);
 		champRecherche.addValueChangeListener( e -> {
-			dataProvider.addFilter(role -> StringUtils.containsIgnoreCase(String.valueOf(role.getLibelle()), champRecherche.getValue())
-				|| StringUtils.containsIgnoreCase(String.valueOf(role.getId()), champRecherche.getValue()));
+			/*dataProvider.addFilter(role -> StringUtils.containsIgnoreCase(String.valueOf(role.getLibelle()), champRecherche.getValue())
+				|| StringUtils.containsIgnoreCase(String.valueOf(role.getId()), champRecherche.getValue()));*/
+			updateRole(champRecherche.getValue());
 		});
 		buttonsLayout.add(champRecherche);
 
@@ -416,7 +417,7 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 					buttonCancel.setVisible(false);
 					buttonCreate.setVisible(false);
 					buttonNew.setVisible(true);
-					updateRole();
+					updateRole(champRecherche.getValue());
 				} else {
 					Notification.show("La création a échouée");
 				}
@@ -484,8 +485,12 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 		Notification.show(getTranslation("rolemanuel.clicked", LocalTime.now()));
 	}
 
-	private void updateRole() {
-		listRoles = roleManuelService.findAllOrderByDateMaj();
+	private void updateRole(String search) {
+		if(search==null) {
+			listRoles = roleManuelService.findAllOrderByDateMaj();
+		} else {
+			listRoles = roleManuelService.findFor(search);
+		}
 		dataProvider = new ListDataProvider<>(listRoles);
 		rolesGrid.setDataProvider(dataProvider);
 	}
@@ -493,7 +498,7 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 
 	private void notifyClicked() {
 		Notification.show(getTranslation("rolemanuel.clicked", LocalTime.now()));
-		updateRole();
+		updateRole(champRecherche.getValue());
 	}
 
 	/**

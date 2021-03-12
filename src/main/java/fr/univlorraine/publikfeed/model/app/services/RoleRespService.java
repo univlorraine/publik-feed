@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import fr.univlorraine.publikfeed.model.app.entity.RoleResp;
+import fr.univlorraine.publikfeed.model.app.entity.UserHis;
 import fr.univlorraine.publikfeed.model.app.repository.RoleRespRepository;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -46,6 +47,10 @@ public class RoleRespService implements Serializable {
 
 	public List<RoleResp> findAll() {
 		return roleRespRepository.findAll();
+	}
+
+	public List<RoleResp> findFor(String search) {
+		return roleRespRepository.findByLibelleContainingIgnoreCaseOrCodStrContainingIgnoreCase(search, search);
 	}
 
 

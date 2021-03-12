@@ -163,10 +163,6 @@ public class UsersView extends VerticalLayout implements HasDynamicTitle, HasHea
 		hl.addAndExpand(label);
 		return hl;
 	}
-	
-	private void uploadCsv() {
-		Notification.show(getTranslation("Users.clicked", LocalTime.now()));
-	}
 
 	private void updateUsers(String search) {
 		if(search==null) {
@@ -180,8 +176,8 @@ public class UsersView extends VerticalLayout implements HasDynamicTitle, HasHea
 
 
 	private void notifyClicked() {
-		Notification.show(getTranslation("Users.clicked", LocalTime.now()));
-		updateUsers(null);
+		Notification.show(getTranslation("users.clicked", LocalTime.now()));
+		updateUsers(champRecherche.getValue());
 	}
 
 	/**
