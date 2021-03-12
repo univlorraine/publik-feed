@@ -42,6 +42,7 @@ import fr.univlorraine.publikfeed.ui.layout.HasHeader;
 import fr.univlorraine.publikfeed.ui.layout.MainLayout;
 import fr.univlorraine.publikfeed.ui.layout.PageTitleFormatter;
 import fr.univlorraine.publikfeed.ui.layout.TextHeader;
+import fr.univlorraine.publikfeed.utils.Utils;
 import lombok.Getter;
 
 @Route(layout = MainLayout.class)
@@ -72,10 +73,10 @@ public class UsersView extends VerticalLayout implements HasDynamicTitle, HasHea
 		.setAutoWidth(true)
 		.setFrozen(true)
 		.setResizable(true).setHeader("Login");
-	private final Column<UserHis> datMajColumn = usersGrid.addColumn(r -> r.getDatMaj())
+	private final Column<UserHis> datMajColumn = usersGrid.addColumn(r -> Utils.formatDateForDisplay(r.getDatMaj()))
 		.setFlexGrow(1)
 		.setAutoWidth(true).setHeader("Date Maj");
-	private final Column<UserHis> datSupColumn = usersGrid.addColumn(r -> r.getDatSup())
+	private final Column<UserHis> datSupColumn = usersGrid.addColumn(r -> Utils.formatDateForDisplay(r.getDatSup()))
 		.setFlexGrow(1)
 		.setAutoWidth(true).setHeader("Date Suppr");
 

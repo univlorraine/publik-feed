@@ -6,6 +6,9 @@ import java.util.Optional;
 
 import javax.annotation.Resource;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,6 +49,13 @@ public class UserHisService implements Serializable {
 
 	public List<UserHis> findAll() {
 		return userHisRepository.findAllByOrderByLogin();
+	}
+
+	public List<UserHis> findAllWithLimit() {
+		Pageable limit = PageRequest.of(0,200);
+		Page<UserHis> page = userHisRepository.findAll(limit);
+		return page.toList();
+		
 	}
 	
 	
