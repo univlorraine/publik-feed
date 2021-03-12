@@ -1,4 +1,4 @@
-package fr.univlorraine.publikfeed.ui.view.rolemanuel;
+package fr.univlorraine.publikfeed.ui.view.roleresp;
 
 import java.time.LocalTime;
 import java.util.List;
@@ -25,6 +25,7 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.provider.ConfigurableFilterDataProvider;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.ListDataProvider;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
@@ -34,8 +35,8 @@ import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
 
 import fr.univlorraine.publikfeed.job.services.JobLauncher;
-import fr.univlorraine.publikfeed.model.app.entity.RoleManuel;
-import fr.univlorraine.publikfeed.model.app.services.RoleManuelService;
+import fr.univlorraine.publikfeed.model.app.entity.RoleResp;
+import fr.univlorraine.publikfeed.model.app.services.RoleRespService;
 import fr.univlorraine.publikfeed.ui.layout.HasHeader;
 import fr.univlorraine.publikfeed.ui.layout.MainLayout;
 import fr.univlorraine.publikfeed.ui.layout.PageTitleFormatter;
@@ -45,10 +46,10 @@ import lombok.Getter;
 
 @Route(layout = MainLayout.class)
 @SuppressWarnings("serial")
-public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, HasHeader, LocaleChangeObserver {
+public class RoleRespView extends VerticalLayout implements HasDynamicTitle, HasHeader, LocaleChangeObserver {
 
 	@Resource
-	private RoleManuelService roleManuelService;
+	private RoleRespService roleRespService;
 	@Resource
 	private JobLauncher jobLauncher;
 
@@ -66,24 +67,24 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 	private final TextField champRecherche = new TextField();
 	private final Button buttonCsv = new Button();
 	
-	private final Grid<RoleManuel> rolesGrid = new Grid<>();
-	private final Column<RoleManuel> codeColumn = rolesGrid.addComponentColumn(r -> getIdAndButtonColumn(r))
+	private final Grid<RoleResp> rolesGrid = new Grid<>();
+	private final Column<RoleResp> codeColumn = rolesGrid.addComponentColumn(r -> getIdAndButtonColumn(r))
 		.setFlexGrow(0)
 		.setAutoWidth(true)
 		.setFrozen(true)
 		.setResizable(true).setHeader("ID");
-	private final Column<RoleManuel> libelleColumn = rolesGrid.addColumn(r -> r.getLibelle())
+	private final Column<RoleResp> libelleColumn = rolesGrid.addColumn(r -> r.getLibelle())
 		.setFlexGrow(1)
 		.setAutoWidth(true).setHeader("Libellé");
-	private final Column<RoleManuel> selectorColumn = rolesGrid.addComponentColumn(r -> getStateColumn(r))
+	private final Column<RoleResp> selectorColumn = rolesGrid.addComponentColumn(r -> getStateColumn(r))
 		.setFlexGrow(1)
 		.setAutoWidth(true).setHeader("Etat");
 
-
-
-	List<RoleManuel> listRoles;
 	
-	ListDataProvider<RoleManuel> dataProvider;
+
+	List<RoleResp> listRoles;
+	
+	ListDataProvider<RoleResp> dataProvider;
 
 	@PostConstruct
 	public void init() {
@@ -96,19 +97,19 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 	}
 
 
-	private Component getIdAndButtonColumn(RoleManuel r) {
+	private Component getIdAndButtonColumn(RoleResp r) {
 		HorizontalLayout hl = new HorizontalLayout();
 		hl.setMargin(false);
 		hl.setAlignItems(Alignment.CENTER);
 		Button details = new Button(rolesGrid.isDetailsVisible(r) ? VaadinIcon.MINUS.create() : VaadinIcon.PLUS.create(),
 			e -> rolesGrid.setDetailsVisible(r, !rolesGrid.isDetailsVisible(r)));
-		Label label = new Label(r.getId());
+		Label label = new Label(r.getCodStr());
 		hl.add(details);
 		hl.addAndExpand(label);
 		return hl;
 	}
 
-	private Component getStateColumn(RoleManuel r) {
+	private Component getStateColumn(RoleResp r) {
 		// Si le role n'est pas encore créé dans publik
 		if(r.getDatMaj()!=null && r.getDatSup()==null && r.getDatCrePublik()==null) {
 			return VaadinIcon.CLOCK.create();
@@ -132,7 +133,7 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 		}
 		return VaadinIcon.CHECK.create();
 	}
-	private Component getDetailColumn(RoleManuel r) {
+	private Component getDetailColumn(RoleResp r) {
 
 		VerticalLayout detailLayout = new VerticalLayout();
 		detailLayout.getStyle().set("margin", "0");
@@ -140,11 +141,6 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 
 		HorizontalLayout filtreEtLoginlayout = new HorizontalLayout();
 		filtreEtLoginlayout.setWidthFull();
-		TextField filtreField = new TextField("Filtre LDAP");
-		filtreField.setWidthFull();
-		filtreField.setValue(r.getFiltre() != null ? r.getFiltre() : "");
-		filtreField.setReadOnly(true);
-		filtreEtLoginlayout.add(filtreField);
 		TextField loginsField = new TextField("Logins");
 		loginsField.setWidthFull();
 		loginsField.setValue(r.getLogins() != null ? r.getLogins() : "");
@@ -197,7 +193,7 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 		rolesGrid.setSelectionMode(SelectionMode.NONE);
 		rolesGrid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
 
-		listRoles = roleManuelService.findAll();
+		listRoles = roleRespService.findAll();
 		dataProvider = new ListDataProvider<>(listRoles);
 		rolesGrid.setDataProvider(dataProvider);
 
@@ -216,12 +212,13 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 		buttonCsv.setVisible(false);
 		buttonsLayout.add(buttonCsv);
 		
+		
 		champRecherche.setAutofocus(true);
 		champRecherche.setWidth("300px");
 		champRecherche.setClearButtonVisible(true);
 		champRecherche.addValueChangeListener( e -> {
 			dataProvider.addFilter(role -> StringUtils.containsIgnoreCase(String.valueOf(role.getLibelle()), champRecherche.getValue())
-				|| StringUtils.containsIgnoreCase(String.valueOf(role.getId()), champRecherche.getValue()));
+				|| StringUtils.containsIgnoreCase(String.valueOf(role.getCodStr()), champRecherche.getValue()));
 		});
 		buttonsLayout.add(champRecherche);
 		
@@ -229,17 +226,18 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 	}
 	
 	private void uploadCsv() {
-		Notification.show(getTranslation("rolemanuel.clicked", LocalTime.now()));
+		Notification.show(getTranslation("RoleResp.clicked", LocalTime.now()));
 	}
 
 	private void updateRole() {
-		listRoles = roleManuelService.findAll();
-		rolesGrid.setDataProvider(DataProvider.ofCollection(listRoles));
+		listRoles = roleRespService.findAll();
+		dataProvider = DataProvider.ofCollection(listRoles);
+		rolesGrid.setDataProvider(dataProvider);
 	}
 
 
 	private void notifyClicked() {
-		Notification.show(getTranslation("rolemanuel.clicked", LocalTime.now()));
+		Notification.show(getTranslation("RoleResp.clicked", LocalTime.now()));
 		updateRole();
 	}
 
@@ -248,10 +246,10 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 	 */
 	@Override
 	public void localeChange(final LocaleChangeEvent event) {
-		setViewTitle(getTranslation("rolemanuel.title"));
+		setViewTitle(getTranslation("roleresp.title"));
 
-		button.setText(getTranslation("rolemanuel.refresh"));
-		buttonCsv.setText(getTranslation("rolemanuel.csv"));
+		button.setText(getTranslation("roleresp.refresh"));
+		buttonCsv.setText(getTranslation("roleresp.csv"));
 	}
 
 	private void setViewTitle(final String viewTitle) {

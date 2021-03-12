@@ -31,6 +31,9 @@ public class RoleResp implements Serializable {
 	@Column(name = "cod_str")
 	private String codStr;
 	
+	@Column(name = "libelle")
+	private String libelle;
+	
 	@Column(name = "logins")
 	private String logins;
 	

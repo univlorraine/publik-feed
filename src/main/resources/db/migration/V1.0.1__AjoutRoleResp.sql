@@ -4,6 +4,7 @@
 
  CREATE TABLE role_resp (
  	cod_str varchar(10) NOT NULL,
+ 	libelle text NULL,
  	logins text NULL,
  	uuid varchar(50),
  	slug varchar(50) NULL,
