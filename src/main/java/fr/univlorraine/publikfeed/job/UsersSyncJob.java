@@ -23,18 +23,18 @@ import lombok.extern.slf4j.Slf4j;
 @Component(value="usersSyncJob")
 @Slf4j
 public class UsersSyncJob {
-	
-	
+
+
 	@Value("${filtre.userssyncjob}")
 	private transient String filtreSyncUser;
 
 	@Resource
 	private UserPublikController userPublikController;
-	
+
 	@Resource
 	private ProcessHisService processHisService;
 
-	
+
 	@Resource
 	private UserErrHisService userErrHisService;
 
@@ -71,6 +71,14 @@ public class UsersSyncJob {
 				dateLdap = Utils.formatDateToLdap(lastExec.getId().getDatDeb());
 			}
 
+			// Récupération des users en anomalie (user_err_his dont date supérieure à la date de derniere maj dans user_his) 
+			List<String> listLoginToRetry = userErrHisService.getUserToRetry();
+			if(listLoginToRetry!=null && !listLoginToRetry.isEmpty()) {
+				process.setNbObjTotal(listLoginToRetry.size());
+				// sauvegarde du nombre d'objets à traiter dans la base
+				process = processHisService.update(process);
+			}
+
 			// Filtre ldap
 			String filtre = "(&"+filtreSyncUser+"(modifytimestamp>=" + dateLdap + "))";
 
@@ -81,7 +89,7 @@ public class UsersSyncJob {
 
 				if(lp!=null && !lp.isEmpty()) {
 					log.info("{} comptes mis à jour depuis la derniere execution", lp.size());
-					process.setNbObjTotal(lp.size());
+					process.setNbObjTotal(process.getNbObjTotal() + lp.size());
 					process.setNbObjTraite(0);
 					process.setNbObjErreur(0);
 
@@ -94,7 +102,7 @@ public class UsersSyncJob {
 						try {
 							// Création ou maj de l'utilisateur dans Publik
 							userPublikController.createOrUpdateUser(p);
-							
+
 							// Incrément du nombre d'objet traités
 							process.setNbObjTraite(process.getNbObjTraite() + 1);
 
@@ -109,7 +117,7 @@ public class UsersSyncJob {
 							process.setNbObjErreur(process.getNbObjErreur() + 1);
 							// sauvegarde du nombre d'objets traites dans la base
 							process = processHisService.update(process);
-							
+
 							//sauvegarde de l'erreur dans la base
 							UserErrHis erreur = new UserErrHis();
 							erreur.setLogin(p.getUid());
@@ -120,15 +128,54 @@ public class UsersSyncJob {
 					}
 				}
 
-				// Ajout timestamp de fin dans la base
-				processHisService.end(process);
-
-
 			} catch (LdapServiceException e) {
 				log.error("LdapServiceException lors de syncUsers pour le filtre : "+filtre,e);
 			}
 
 
+
+
+			if(listLoginToRetry!=null && !listLoginToRetry.isEmpty()) {
+
+				for(String login : listLoginToRetry) {
+					log.info("Retry user from login : {}", login);
+					try {
+
+						PeopleLdap p = ldapPeopleService.findByPrimaryKey(login);
+
+						if(p!=null) {
+							// Création ou maj de l'utilisateur dans Publik
+							userPublikController.createOrUpdateUser(p);
+
+							// Incrément du nombre d'objet traités
+							process.setNbObjTraite(process.getNbObjTraite() + 1);
+
+							// sauvegarde du nombre d'objets traites dans la base
+							process = processHisService.update(process);
+						}
+						
+					}catch (Exception e) {
+						log.warn("Exception lors du traitement du user",e);
+						// Incrément du nombre d'objet traités
+						process.setNbObjTraite(process.getNbObjTraite() + 1);
+						// Incrément du compteur d'erreur
+						process.setNbObjErreur(process.getNbObjErreur() + 1);
+						// sauvegarde du nombre d'objets traites dans la base
+						process = processHisService.update(process);
+
+						//sauvegarde de l'erreur dans la base
+						UserErrHis erreur = new UserErrHis();
+						erreur.setLogin(login);
+						erreur.setTrace(e.getMessage());
+						erreur = userErrHisService.save(erreur);
+					}
+
+				}
+			}
+
+
+			// Ajout timestamp de fin dans la base
+			processHisService.end(process);
 
 
 			// Notifier l'arret du job

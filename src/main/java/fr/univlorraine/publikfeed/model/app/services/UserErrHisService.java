@@ -32,6 +32,10 @@ public class UserErrHisService implements Serializable {
 	public List<UserErrHis> find(final String login) {
 		return userErrHisRepository.findAllByLogin(login);
 	}
+
+	public List<String> getUserToRetry() {
+		return userErrHisRepository.getLoginToRetry();
+	}
 	
 	
 }
