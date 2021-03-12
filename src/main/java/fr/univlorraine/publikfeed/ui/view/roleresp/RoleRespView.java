@@ -191,6 +191,8 @@ public class RoleRespView extends VerticalLayout implements HasDynamicTitle, Has
 		rolesGrid.setSelectionMode(SelectionMode.NONE);
 		rolesGrid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
 
+		rolesGrid.setPageSize(40);
+
 		updateRole(null);
 
 		add(rolesGrid);

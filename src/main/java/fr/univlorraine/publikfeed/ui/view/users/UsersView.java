@@ -128,6 +128,8 @@ public class UsersView extends VerticalLayout implements HasDynamicTitle, HasHea
 		usersGrid.setSelectionMode(SelectionMode.NONE);
 		usersGrid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
 
+		usersGrid.setPageSize(40);
+
 		updateUsers(null);
 
 		add(usersGrid);
@@ -143,8 +145,6 @@ public class UsersView extends VerticalLayout implements HasDynamicTitle, HasHea
 		champRecherche.setWidth("300px");
 		champRecherche.setClearButtonVisible(true);
 		champRecherche.addValueChangeListener( e -> {
-			/*dataProvider.addFilter(role -> StringUtils.containsIgnoreCase(String.valueOf(role.getLogin()), champRecherche.getValue())
-				|| StringUtils.containsIgnoreCase(String.valueOf(role.getData()), champRecherche.getValue()));*/
 			updateUsers(champRecherche.getValue());
 		});
 		buttonsLayout.add(champRecherche);

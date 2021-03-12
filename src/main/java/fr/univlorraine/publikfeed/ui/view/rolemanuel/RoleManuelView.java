@@ -356,6 +356,8 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 		rolesGrid.setSelectionMode(SelectionMode.NONE);
 		rolesGrid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
 
+		rolesGrid.setPageSize(40);
+		
 		updateRole(null);
 
 		add(rolesGrid);
@@ -377,8 +379,6 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 		champRecherche.setWidth("300px");
 		champRecherche.setClearButtonVisible(true);
 		champRecherche.addValueChangeListener( e -> {
-			/*dataProvider.addFilter(role -> StringUtils.containsIgnoreCase(String.valueOf(role.getLibelle()), champRecherche.getValue())
-				|| StringUtils.containsIgnoreCase(String.valueOf(role.getId()), champRecherche.getValue()));*/
 			updateRole(champRecherche.getValue());
 		});
 		buttonsLayout.add(champRecherche);
