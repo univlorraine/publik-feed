@@ -133,7 +133,7 @@ public class Utils {
 
 	public static String formatDateForDisplay(LocalDateTime date) {
 		if(date !=null) {
-			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 			return date.format(formatter);
 		}
 		return null;
