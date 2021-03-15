@@ -18,6 +18,7 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.Grid.Column;
 import com.vaadin.flow.component.grid.Grid.SelectionMode;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.grid.GridVariant;
@@ -37,6 +38,8 @@ import com.vaadin.flow.router.Route;
 import fr.univlorraine.publikfeed.job.services.JobLauncher;
 import fr.univlorraine.publikfeed.model.app.entity.RoleResp;
 import fr.univlorraine.publikfeed.model.app.entity.UserHis;
+import fr.univlorraine.publikfeed.model.app.entity.UserRole;
+import fr.univlorraine.publikfeed.model.app.services.RoleAutoService;
 import fr.univlorraine.publikfeed.model.app.services.UserHisService;
 import fr.univlorraine.publikfeed.ui.layout.HasHeader;
 import fr.univlorraine.publikfeed.ui.layout.MainLayout;
@@ -44,15 +47,19 @@ import fr.univlorraine.publikfeed.ui.layout.PageTitleFormatter;
 import fr.univlorraine.publikfeed.ui.layout.TextHeader;
 import fr.univlorraine.publikfeed.utils.Utils;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 @Route(layout = MainLayout.class)
 @SuppressWarnings("serial")
+@Slf4j
 public class UsersView extends VerticalLayout implements HasDynamicTitle, HasHeader, LocaleChangeObserver {
 
 	@Resource
 	private UserHisService userHisService;
 	@Resource
 	private JobLauncher jobLauncher;
+	@Resource
+	private RoleAutoService roleAutoService;
 
 	/** Thread pool  */
 	ExecutorService executorService = Executors.newSingleThreadExecutor();
@@ -116,8 +123,38 @@ public class UsersView extends VerticalLayout implements HasDynamicTitle, HasHea
 		dataField.setValue(u.getData() != null ? u.getData() : "");
 		dataField.setReadOnly(true);
 		publikLayout.add(dataField);
-
+		
 		detailLayout.add(publikLayout);
+		
+		log.info("Recuperation des roles de {}",u.getLogin());
+		List<UserRole> listeUserRole = roleAutoService.findRolesFromLogin(u.getLogin());
+		HorizontalLayout roleAutoLayout = new HorizontalLayout();
+		roleAutoLayout.setWidthFull();
+		for(UserRole roleAuto : listeUserRole) {
+			// Si le role est actif
+			if(roleAuto != null) {
+				VerticalLayout divRole = new VerticalLayout();
+				divRole.getStyle().set("padding", "0.5em");
+				divRole.getStyle().set("border-radius", "0.6em");
+				divRole.setSizeUndefined();
+				Label libelleRole = new Label(roleAuto.getId().getRoleId());
+				divRole.add(libelleRole);
+				
+				Label dateMaj = new Label(Utils.formatDateForDisplay(roleAuto.getDatMaj()));
+				dateMaj.getStyle().set("font-size", "smaller");
+				dateMaj.getStyle().set("margin", "0");
+				
+				if(roleAuto.getDatSup()==null) {
+					divRole.getStyle().set("background-color", "rgb(18 222 103 / 76%)");
+				}else {
+					dateMaj.setText(Utils.formatDateForDisplay(roleAuto.getDatSup()));
+					divRole.getStyle().set("background-color", "#cc2929");
+				}
+				divRole.add(dateMaj);
+				roleAutoLayout.add(divRole);
+			}
+		}
+		detailLayout.add(roleAutoLayout);
 
 		return detailLayout;
 	}
