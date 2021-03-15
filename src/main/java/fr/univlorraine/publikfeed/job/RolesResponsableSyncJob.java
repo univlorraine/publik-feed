@@ -133,7 +133,7 @@ public class RolesResponsableSyncJob {
 
 
 
-						// Récupération des responsables par défaut
+						// Récupération des responsables par défaut applicatif
 						List<String> ldefaultlogins = null;
 						if(StringUtils.hasText(defaultUsers)) {
 							// ajout admins par defaut
@@ -164,9 +164,12 @@ public class RolesResponsableSyncJob {
 							if(mapResponsables.containsKey(codeStr)) {
 								log.debug("Structure {} : {} deja dans la map",codeStr, s.getUdlLibelleAffichage());
 							} else {
-								// AJout avec les resp par défaut
-								log.info("Structure {} : {} non presente dans la map. Ajout avec le user par défaut",codeStr, s.getUdlLibelleAffichage());
-								mapResponsables.put(codeStr, ldefaultlogins);
+
+								// Si aucun ajout avec les resp par défaut global
+								if(!mapResponsables.containsKey(codeStr)) {
+									log.info("Structure {} : {} non presente dans la map. Ajout avec le user par défaut",codeStr, s.getUdlLibelleAffichage());
+									mapResponsables.put(codeStr, ldefaultlogins);
+								}
 							}
 
 

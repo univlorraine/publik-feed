@@ -139,11 +139,19 @@ public class RoleRespView extends VerticalLayout implements HasDynamicTitle, Has
 
 		HorizontalLayout filtreEtLoginlayout = new HorizontalLayout();
 		filtreEtLoginlayout.setWidthFull();
+		
 		TextField loginsField = new TextField("Logins");
 		loginsField.setWidthFull();
 		loginsField.setValue(r.getLogins() != null ? r.getLogins() : "");
 		loginsField.setReadOnly(true);
 		filtreEtLoginlayout.add(loginsField);
+		
+		TextField loginsDefautField = new TextField("Logins par défaut");
+		loginsDefautField.setWidthFull();
+		loginsDefautField.setValue(r.getLoginsDefaut() != null ? r.getLoginsDefaut() : "");
+		loginsDefautField.setReadOnly(true);
+		filtreEtLoginlayout.add(loginsDefautField);
+		
 		TextField dateMajField = new TextField("Date Maj");
 		dateMajField.setValue(r.getDatMaj() != null ? Utils.formatDateForDisplay(r.getDatMaj()) : "");
 		dateMajField.setReadOnly(true);

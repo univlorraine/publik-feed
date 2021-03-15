@@ -66,11 +66,12 @@ public class RoleManuelService implements Serializable {
 		return r;
 	}
 
-	public RoleManuel updateFiltreAndLogins(RoleManuel r, String filtre, String logins, Boolean actif) {
+	public RoleManuel updateFiltreAndLogins(RoleManuel r, String filtre, String logins, String loginsDefaut, Boolean actif) {
 		Optional<RoleManuel> role = findRole(r.getId());
 		if(role.isPresent()) {
 			role.get().setFiltre(StringUtils.hasText(filtre)? filtre : null);
 			role.get().setLogins(StringUtils.hasText(logins)? logins : null);
+			role.get().setLoginsDefaut(StringUtils.hasText(loginsDefaut)? loginsDefaut : null);
 			role.get().setDatMaj(LocalDateTime.now());
 			if(actif) {
 				role.get().setDatSup(null);

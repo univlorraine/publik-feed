@@ -37,22 +37,25 @@ public class RolePublikController {
 
 	@Value("${publik.default.user.role.vide}")
 	private transient String defaultUsers;
-	
+
 	@Resource
 	private RolePublikApiService rolePublikApiService;
-	
+
 	@Resource
 	private RoleManuelService roleManuelService;
-	
+
 	@Resource
 	private RoleRespService roleRespService;
-	
+
 	@Resource
 	private LdapGenericService<PeopleLdap> ldapPeopleService;
-	
+
 	@Resource
 	private UserHisService userHisService;
-	
+
+	@Resource
+	private UserPublikController userPublikController;
+
 	/**
 	 * Retourne tous les roles présents dans Publik
 	 * @return
@@ -91,15 +94,15 @@ public class RolePublikController {
 		} 
 		return isDeleted;
 	}
-	
-	
+
+
 	/**
 	 * Effectue la synchro d'un role manuel
 	 * @param role
 	 * @throws Exception
 	 */
 	public void syncRoleManuel(RoleManuel role) throws Exception {
-		
+
 		boolean newRole = false;
 		List<String> uuids = new LinkedList<String> ();
 		if(StringUtils.hasText(role.getFiltre())) {
@@ -136,40 +139,33 @@ public class RolePublikController {
 				}
 			}
 		}
-		
-		// Si la liste est vide et qu'on a des user par defaut
-		if(uuids.isEmpty() && defaultUsers != null) {
-				log.info("Ajout users par defaut dans le groupe {} vide", role.getId());
-				// ajout admins par defaut
-				String[] tlogins = defaultUsers.split(",");
-				if(tlogins!=null && tlogins.length>0) {
-					for(String login : tlogins) {
-						//recuperation du uuid
-						String uuid = userHisService.getUuidFromLogin(login);
-						// Si on a un uuid et qu'il est pas déjà dans la liste
-						if(uuid != null && !uuids.contains(uuid)) {
-							// Ajout du login à la liste
-							uuids.add(uuid);
-						} else {
-							log.info("Uuid de {} non trouve ou deja dans la liste, uuid : ", login, uuid);
-						}
-					}
-				}
+
+		// Si la liste est vide et qu'on a des logins par defaut pour le role
+		if(uuids.isEmpty() && StringUtils.hasText(role.getLoginsDefaut())) {
+			log.info("Ajout logins par defaut dans le groupe {} vide : {}", role.getId(), role.getLoginsDefaut());
+			userPublikController.ajoutUuidsFromLogin(uuids, role.getLoginsDefaut());
 		}
+
+		// Si la liste est vide et qu'on a des users par defaut définis globalement dans l'application
+		if(uuids.isEmpty() && defaultUsers != null) {
+			log.info("Ajout users par defaut dans le groupe {} vide : {}", role.getId(), defaultUsers);
+			userPublikController.ajoutUuidsFromLogin(uuids, defaultUsers);
+		}
+
 		// On trie de la liste pour avoir un hash identique si la liste contient les même éléments
 		Collections.sort(uuids);
-		
+
 		log.info("{} users dans le groupe {}", uuids.size(), role.getId());
-		
-		
+
+
 		//Creation de l'objet Json correspondant à la liste
 		ListUuidJson data = Utils.getListUuidJson(uuids);
-		
+
 		// Creation du hash
 		String hash = Utils.getHash(data);
-		
+
 		log.info("Hash du role {} : {}", role.getId(), hash);
-		
+
 		// Si le role n'est pas dans Publik
 		if(role.getDatCrePublik()==null) {
 			log.info("Role {} est nouveau. Il doit etre cree dans Publik", role.getId());
@@ -177,9 +173,9 @@ public class RolePublikController {
 			rj.setName(Utils.PREFIX_ROLE_MANUEL + role.getId().toUpperCase());
 			// Creation dans Publik si necessaire
 			RolePublikApi rolePublik = rolePublikApiService.createRole(rj);
-			
+
 			log.info("Role {} créé dans Publik", role.getId());
-			
+
 			newRole = true;
 			// maj BDD
 			role.setId(role.getId().toUpperCase());
@@ -188,33 +184,35 @@ public class RolePublikController {
 			role.setOu(rolePublik.getOu());
 			role.setDatCrePublik(LocalDateTime.now());
 			role = roleManuelService.saveRole(role);
-			
+
 			log.info("Uuid du Role {} sauvegardé dans la base : ", role.getId(), role.getUuid());
-			
+
 		}
 
 
 		// Si nouvau role ou si le hash est different
 		if(newRole || (role.getHash()==null && hash!=null) || (role.getHash()!=null && hash==null) || !role.getHash().equals(hash)) {
-				
-				log.info("La population du role {} doit être mise à jour dans Publik", role.getId());
-				// Ajout/maj des personnes dans publik
-				AddUserToRoleResponsePublikApi response = rolePublikApiService.setUsersToRole(role.getUuid(), data);
 
-				log.info("Users Role {} ont été mis à jour dans Publik : ", role.getId());
-				
-				// Si l'appel à l'API Publik s'est bien passé
-				if(response!=null && response.getResult()==1) {
-					// Maj de la date et du hash dans la base
-					role.setDatMajPublik(LocalDateTime.now());
-					role.setHash(hash);
-					role = roleManuelService.saveRole(role);
-					log.info("Hash du Role {} sauvegardé dans la base : ", role.getId(), role.getHash());
-				}
+			log.info("La population du role {} doit être mise à jour dans Publik", role.getId());
+			// Ajout/maj des personnes dans publik
+			AddUserToRoleResponsePublikApi response = rolePublikApiService.setUsersToRole(role.getUuid(), data);
+
+			log.info("Users Role {} ont été mis à jour dans Publik : ", role.getId());
+
+			// Si l'appel à l'API Publik s'est bien passé
+			if(response!=null && response.getResult()==1) {
+				// Maj de la date et du hash dans la base
+				role.setDatMajPublik(LocalDateTime.now());
+				role.setHash(hash);
+				role = roleManuelService.saveRole(role);
+				log.info("Hash du Role {} sauvegardé dans la base : ", role.getId(), role.getHash());
+			}
 		} else {
 			log.info("La population du role {} est déjà à jour dans Publik", role.getId());
 		}
 	}
+
+
 
 	public void syncRoleResp(Entry<String, List<String>> structure, String libelle) {
 
@@ -247,6 +245,7 @@ public class RolePublikController {
 				uuids.add(uuid);
 			}
 		}
+
 		// On trie de la liste pour avoir un hash identique si la liste contient les même éléments
 		Collections.sort(uuids);
 
@@ -303,7 +302,7 @@ public class RolePublikController {
 		} else {
 			log.info("La population du role {} est déjà à jour dans Publik", r.getCodStr());
 		}
-		
+
 	}
- 
+
 }

@@ -10,7 +10,6 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
 import org.apache.commons.lang3.StringUtils;
-import org.aspectj.weaver.patterns.IfPointcut.IfFalsePointcut;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.vaadin.flow.component.Component;
@@ -19,28 +18,24 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.formlayout.FormLayout.ResponsiveStep;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.Grid.Column;
 import com.vaadin.flow.component.grid.Grid.SelectionMode;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.menubar.MenuBarVariant;
 import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.notification.Notification.Position;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.textfield.Autocapitalize;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.ListDataProvider;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.i18n.LocaleChangeEvent;
 import com.vaadin.flow.i18n.LocaleChangeObserver;
 import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.theme.Theme;
 
 import fr.univlorraine.publikfeed.job.services.JobLauncher;
 import fr.univlorraine.publikfeed.model.app.entity.RoleManuel;
@@ -85,6 +80,7 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 	TextField libField = new TextField();
 	TextField filtreField = new TextField();
 	TextField loginsField = new TextField();
+	TextField loginsDefautField = new TextField();
 
 	private final Grid<RoleManuel> rolesGrid = new Grid<>();
 	private final Column<RoleManuel> codeColumn = rolesGrid.addComponentColumn(r -> getIdAndButtonColumn(r))
@@ -209,6 +205,11 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 		loginsField.setValue(r.getLogins() != null ? r.getLogins() : "");
 		loginsField.setReadOnly(true);
 		filtreEtLoginlayout.add(loginsField);
+		TextField loginsDefautField = new TextField("Logins par défaut");
+		loginsDefautField.setWidthFull();
+		loginsDefautField.setValue(r.getLoginsDefaut() != null ? r.getLoginsDefaut() : "");
+		loginsDefautField.setReadOnly(true);
+		filtreEtLoginlayout.add(loginsDefautField);
 		TextField dateMajField = new TextField("Date Maj");
 		dateMajField.setValue(r.getDatMaj() != null ? Utils.formatDateForDisplay(r.getDatMaj()) : "");
 		dateMajField.setReadOnly(true);
@@ -261,6 +262,7 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 		editButton.addClickListener(e -> {
 			filtreField.setReadOnly(false);
 			loginsField.setReadOnly(false);
+			loginsDefautField.setReadOnly(false);
 			editButton.setVisible(false);
 			validButton.setVisible(true);
 			checkBox.setVisible(true);
@@ -270,7 +272,7 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 
 		validButton.addClickListener(e -> {
 			try {
-				RoleManuel updatedRole = roleManuelService.updateFiltreAndLogins(r, filtreField.getValue(), loginsField.getValue(), checkBox.getValue());
+				RoleManuel updatedRole = roleManuelService.updateFiltreAndLogins(r, filtreField.getValue(), loginsField.getValue(), loginsDefautField.getValue(), checkBox.getValue());
 				rolesGrid.getDataProvider().refreshItem(updatedRole);
 				Notification.show(getTranslation("maj.ok.notif", LocalTime.now()));
 
@@ -309,6 +311,9 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 
 		loginsField.setLabel("Logins");
 		loginsField.setPlaceholder("liste de logins séparés par une virgule");
+		
+		loginsDefautField.setLabel("Logins par défaut");
+		loginsDefautField.setPlaceholder("liste de logins par défaut séparés par une virgule");
 
 		idField.addValueChangeListener(e-> {
 			if(idField.getValue()!=null) {
@@ -325,8 +330,16 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 		loginsField.addValueChangeListener(e-> {
 			majFormData();
 		});
+		loginsDefautField.addValueChangeListener(e-> {
+			majFormData();
+		});
 
-		addLayout.add(idField, libField, filtreField, loginsField);
+		addLayout.add(idField, libField, filtreField, loginsField, loginsDefautField);
+		addLayout.setResponsiveSteps(
+           new ResponsiveStep("40em", 1),
+           new ResponsiveStep("20em", 2),
+           new ResponsiveStep("20em", 3));
+		addLayout.setColspan(libField, 2);
 		addLayout.setVisible(false);
 
 		add(addLayout);
@@ -438,6 +451,10 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 			Notification.show("L'id n'est pas valide");
 			ko = true;
 		}
+		if(StringUtils.isBlank(loginsDefautField.getValue())) {
+			Notification.show("Vous devez indiquer un login par defaut");
+			ko = true;
+		}
 		if(!StringUtils.isBlank(filtreField.getValue()) && filtreField.getValue().contains(" ")) {
 			Notification.show("Le filtre ne doit pas contenir d'espace");
 			ko = true;
@@ -454,6 +471,9 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 		RoleManuel newRole = new RoleManuel();
 		newRole.setId(idField.getValue());
 		newRole.setLibelle(libField.getValue());
+		if(!StringUtils.isBlank(loginsDefautField.getValue())) {
+		newRole.setLoginsDefaut(loginsDefautField.getValue());
+		}
 		if(!StringUtils.isBlank(filtreField.getValue())) {
 			newRole.setFiltre(filtreField.getValue());
 		}
@@ -468,6 +488,7 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 		libField.clear();
 		filtreField.clear();
 		loginsField.clear();
+		loginsDefautField.clear();
 		
 		return newRole;
 		

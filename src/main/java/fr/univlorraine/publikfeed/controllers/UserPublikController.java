@@ -286,5 +286,24 @@ public class UserPublikController {
 		}
 		return false;
 	}
+	
+	public void ajoutUuidsFromLogin(List<String> uuids, String logins) {
+		// ajout admins par defaut
+		String[] tlogins = logins.split(",");
+		if(tlogins!=null && tlogins.length>0) {
+			for(String login : tlogins) {
+				//recuperation du uuid
+				String uuid = userHisService.getUuidFromLogin(login);
+				// Si on a un uuid et qu'il est pas déjà dans la liste
+				if(uuid != null && !uuids.contains(uuid)) {
+					// Ajout du login à la liste
+					uuids.add(uuid);
+				} else {
+					log.info("Uuid de {} non trouve ou deja dans la liste, uuid : ", login, uuid);
+				}
+			}
+		}
+
+	}
 
 }

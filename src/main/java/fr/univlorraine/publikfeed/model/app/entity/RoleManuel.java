@@ -39,6 +39,9 @@ public class RoleManuel implements Serializable {
 	@Column(name = "logins")
 	private String logins;
 	
+	@Column(name = "logins_defaut")
+	private String loginsDefaut;
+	
 	@Column(name = "filtre")
 	private String filtre;
 	
