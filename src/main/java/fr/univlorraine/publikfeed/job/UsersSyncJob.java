@@ -5,6 +5,7 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
+import org.flywaydb.core.internal.util.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -98,31 +99,33 @@ public class UsersSyncJob {
 
 					// Pour chaque entrée ldap
 					for(PeopleLdap p : lp) {
+						// Si la personne a un mail
+						if(p != null && StringUtils.hasText(p.getMail())) {
+							try {
+								// Création ou maj de l'utilisateur dans Publik
+								userPublikController.createOrUpdateUser(p);
 
-						try {
-							// Création ou maj de l'utilisateur dans Publik
-							userPublikController.createOrUpdateUser(p);
+								// Incrément du nombre d'objet traités
+								process.setNbObjTraite(process.getNbObjTraite() + 1);
 
-							// Incrément du nombre d'objet traités
-							process.setNbObjTraite(process.getNbObjTraite() + 1);
+								// sauvegarde du nombre d'objets traites dans la base
+								process = processHisService.update(process);
 
-							// sauvegarde du nombre d'objets traites dans la base
-							process = processHisService.update(process);
+							}catch (Exception e) {
+								log.warn("Exception lors du traitement du user",e);
+								// Incrément du nombre d'objet traités
+								process.setNbObjTraite(process.getNbObjTraite() + 1);
+								// Incrément du compteur d'erreur
+								process.setNbObjErreur(process.getNbObjErreur() + 1);
+								// sauvegarde du nombre d'objets traites dans la base
+								process = processHisService.update(process);
 
-						}catch (Exception e) {
-							log.warn("Exception lors du traitement du user",e);
-							// Incrément du nombre d'objet traités
-							process.setNbObjTraite(process.getNbObjTraite() + 1);
-							// Incrément du compteur d'erreur
-							process.setNbObjErreur(process.getNbObjErreur() + 1);
-							// sauvegarde du nombre d'objets traites dans la base
-							process = processHisService.update(process);
-
-							//sauvegarde de l'erreur dans la base
-							UserErrHis erreur = new UserErrHis();
-							erreur.setLogin(p.getUid());
-							erreur.setTrace(e.getMessage());
-							erreur = userErrHisService.save(erreur);
+								//sauvegarde de l'erreur dans la base
+								UserErrHis erreur = new UserErrHis();
+								erreur.setLogin(p.getUid());
+								erreur.setTrace(e.getMessage());
+								erreur = userErrHisService.save(erreur);
+							}
 						}
 
 					}
@@ -153,7 +156,7 @@ public class UsersSyncJob {
 							// sauvegarde du nombre d'objets traites dans la base
 							process = processHisService.update(process);
 						}
-						
+
 					}catch (Exception e) {
 						log.warn("Exception lors du traitement du user",e);
 						// Incrément du nombre d'objet traités
