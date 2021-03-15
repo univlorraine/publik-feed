@@ -136,6 +136,7 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 
 		Button validButton = new Button();
 		validButton.setIcon(VaadinIcon.CHECK.create());
+		validButton.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
 		validButton.setVisible(false);
 
 		Button editButton = new Button();
@@ -247,6 +248,7 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 		publikLayout.add(dateSupPublikField);
 
 		Button validButton = new Button();
+		validButton.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
 		validButton.setText("Valider");
 		validButton.setIcon(VaadinIcon.CHECK.create());
 		validButton.setVisible(false);

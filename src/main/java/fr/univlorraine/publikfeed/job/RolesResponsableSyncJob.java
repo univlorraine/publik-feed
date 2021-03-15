@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Map.Entry;
 
 import javax.annotation.Resource;
@@ -20,7 +21,9 @@ import fr.univlorraine.publikfeed.ldap.entity.StructureLdap;
 import fr.univlorraine.publikfeed.ldap.exceptions.LdapServiceException;
 import fr.univlorraine.publikfeed.ldap.services.LdapGenericService;
 import fr.univlorraine.publikfeed.model.app.entity.ProcessHis;
+import fr.univlorraine.publikfeed.model.app.entity.RoleResp;
 import fr.univlorraine.publikfeed.model.app.services.ProcessHisService;
+import fr.univlorraine.publikfeed.model.app.services.RoleRespService;
 import fr.univlorraine.publikfeed.utils.JobUtils;
 import fr.univlorraine.publikfeed.utils.Utils;
 import lombok.extern.slf4j.Slf4j;
@@ -51,6 +54,9 @@ public class RolesResponsableSyncJob {
 
 	@Resource
 	private LdapGenericService<StructureLdap> ldapStructureService;
+	
+	@Resource
+	private RoleRespService roleRespService;
 
 
 	public void syncRoles() {
@@ -164,7 +170,14 @@ public class RolesResponsableSyncJob {
 							if(mapResponsables.containsKey(codeStr)) {
 								log.debug("Structure {} : {} deja dans la map",codeStr, s.getUdlLibelleAffichage());
 							} else {
-
+								Optional<RoleResp> role = roleRespService.findRole(codeStr);
+								// Si le role est déjà dans la base et qu'il a des logins par défaut
+								if(role.isPresent() && StringUtils.hasText(role.get().getLoginsDefaut())) {
+									String[] tlogins = role.get().getLoginsDefaut().split(",");
+									if(tlogins!=null && tlogins.length>0) {
+										mapResponsables.put(codeStr, Arrays.asList(tlogins));
+									}
+								}
 								// Si aucun ajout avec les resp par défaut global
 								if(!mapResponsables.containsKey(codeStr)) {
 									log.info("Structure {} : {} non presente dans la map. Ajout avec le user par défaut",codeStr, s.getUdlLibelleAffichage());

@@ -22,6 +22,7 @@ import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
@@ -34,6 +35,7 @@ import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
 
 import fr.univlorraine.publikfeed.job.services.JobLauncher;
+import fr.univlorraine.publikfeed.model.app.entity.RoleManuel;
 import fr.univlorraine.publikfeed.model.app.entity.RoleResp;
 import fr.univlorraine.publikfeed.model.app.services.RoleRespService;
 import fr.univlorraine.publikfeed.ui.layout.HasHeader;
@@ -42,9 +44,11 @@ import fr.univlorraine.publikfeed.ui.layout.PageTitleFormatter;
 import fr.univlorraine.publikfeed.ui.layout.TextHeader;
 import fr.univlorraine.publikfeed.utils.Utils;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 @Route(layout = MainLayout.class)
 @SuppressWarnings("serial")
+@Slf4j
 public class RoleRespView extends VerticalLayout implements HasDynamicTitle, HasHeader, LocaleChangeObserver {
 
 	@Resource
@@ -151,6 +155,36 @@ public class RoleRespView extends VerticalLayout implements HasDynamicTitle, Has
 		loginsDefautField.setValue(r.getLoginsDefaut() != null ? r.getLoginsDefaut() : "");
 		loginsDefautField.setReadOnly(true);
 		filtreEtLoginlayout.add(loginsDefautField);
+		
+		Button validButton = new Button();
+		validButton.setIcon(VaadinIcon.CHECK.create());
+		validButton.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
+		validButton.setVisible(false);
+		validButton.getStyle().set("margin-top", "auto");
+
+		Button editButton = new Button();
+		editButton.setIcon(VaadinIcon.PENCIL.create());
+		editButton.addClickListener(e -> {
+			loginsDefautField.setReadOnly(false);
+			editButton.setVisible(false);
+			validButton.setVisible(true);
+		});
+		editButton.getStyle().set("margin-top", "auto");
+		
+		validButton.addClickListener(e -> {
+			try {
+				RoleResp updatedRole = roleRespService.updateLoginsDefaut(r, loginsDefautField.getValue());
+				rolesGrid.getDataProvider().refreshItem(updatedRole);
+				Notification.show(getTranslation("maj.ok.notif", LocalTime.now()));
+			} catch(Exception ex) {
+				Notification notification = new Notification();
+				notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+				notification.show(getTranslation("erreur.notif") + " : "+ ex.getMessage());
+				log.error("Erreur lors de la maj du libelle du role "+r.getCodStr(), ex);
+			}
+		});
+		filtreEtLoginlayout.add(validButton);
+		filtreEtLoginlayout.add(editButton);
 		
 		TextField dateMajField = new TextField("Date Maj");
 		dateMajField.setValue(r.getDatMaj() != null ? Utils.formatDateForDisplay(r.getDatMaj()) : "");
