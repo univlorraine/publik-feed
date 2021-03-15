@@ -183,6 +183,11 @@ public class RolesResponsableSyncJob {
 									log.info("Structure {} : {} non presente dans la map. Ajout avec le user par défaut",codeStr, s.getUdlLibelleAffichage());
 									mapResponsables.put(codeStr, ldefaultlogins);
 								}
+								// Si aucun ajout avec les resp par défaut global
+								if(!mapResponsables.containsKey(codeStr)) {
+									log.info("Structure {} : {} sans responsable",codeStr, s.getUdlLibelleAffichage());
+									mapResponsables.put(codeStr, null);
+								}
 							}
 
 

@@ -94,6 +94,24 @@ public class RolePublikController {
 		} 
 		return isDeleted;
 	}
+	
+	/**
+	 * supprime le role dans publik et maj la bdd avec la date de suppression
+	 * @param role
+	 * @return
+	 */
+	public boolean deleteRoleInPublik(RoleResp role) {
+		// On supprime le role dans Publik
+		boolean isDeleted = rolePublikApiService.deleteRole(role.getUuid());
+
+		// Si la suppression s'est bien passée
+		if(isDeleted) {
+			// On met à jour la base
+			role.setDatSupPublik(LocalDateTime.now());
+			roleRespService.saveRole(role);
+		} 
+		return isDeleted;
+	}
 
 
 	/**
@@ -228,26 +246,31 @@ public class RolePublikController {
 			// maj du libellé au cas ou
 			r.setLibelle(libelle);
 		}
-		// On trie de la liste pour avoir un hash identique si la liste contient les même éléments
-		Collections.sort(structure.getValue());
-		r.setLogins(String.join(",", structure.getValue()));
+		if(structure.getValue()!=null) {
+			// On trie de la liste pour avoir un hash identique si la liste contient les même éléments
+			Collections.sort(structure.getValue());
+			r.setLogins(String.join(",", structure.getValue()));
+		}else{
+			r.setLogins(null);
+		}
 		r.setDatMaj(LocalDateTime.now());
 		// Maj des logins dans la base
 		r = roleRespService.saveRole(r);
 
 		// calcul de la liste des uuids des resp
 		List<String> uuids = new LinkedList<String> ();
-		for(String login : structure.getValue()) {
-			//recuperation du uuid
-			String uuid = userHisService.getUuidFromLogin(login);
-			if(uuid != null) {
-				// Ajout du login à la liste
-				uuids.add(uuid);
+		if(structure.getValue()!=null) {
+			for(String login : structure.getValue()) {
+				log.info("Recuperation uuid de {}", login);
+				String uuid = userHisService.getUuidFromLogin(login);
+				if(uuid != null) {
+					// Ajout du login à la liste
+					uuids.add(uuid);
+				}
 			}
+			// On trie de la liste pour avoir un hash identique si la liste contient les même éléments
+			Collections.sort(uuids);
 		}
-
-		// On trie de la liste pour avoir un hash identique si la liste contient les même éléments
-		Collections.sort(uuids);
 
 		log.info("{} users dans le groupe {}", uuids.size(), r.getCodStr());
 
@@ -260,8 +283,8 @@ public class RolePublikController {
 		log.info("Hash du role resp {} : {}", r.getCodStr(), hash);
 		boolean newRole = false;
 
-		// Si le role n'est pas dans Publik
-		if(r.getDatCrePublik()==null) {
+		// Si le role n'est pas dans Publik et qu'il a des personnes associées
+		if(r.getDatCrePublik()==null && !uuids.isEmpty() ) {
 			log.info("Role {} est nouveau. Il doit etre cree dans Publik", r.getCodStr());
 			RoleJson rj = new RoleJson();
 			rj.setName(Utils.PREFIX_ROLE_RESP + r.getCodStr().toUpperCase());
@@ -282,8 +305,8 @@ public class RolePublikController {
 
 		}
 
-		// Si nouvau role ou si le hash est different
-		if(newRole || (r.getHash()==null && hash!=null) || (r.getHash()!=null && hash==null) || !r.getHash().equals(hash)) {
+		// Si le role a des user et qu'il est nouveau ou si le hash est different
+		if( !uuids.isEmpty() && (newRole || (r.getHash()==null && hash!=null) || (r.getHash()!=null && hash==null) || !r.getHash().equals(hash))) {
 
 			log.info("La population du role {} doit être mise à jour dans Publik", r.getCodStr());
 			// Ajout/maj des personnes dans publik
@@ -301,6 +324,13 @@ public class RolePublikController {
 			}
 		} else {
 			log.info("La population du role {} est déjà à jour dans Publik", r.getCodStr());
+		}
+		
+		// Si le rôle est vide et qu'il est toujours présent dans Publik
+		if(r.getDatCrePublik()!=null && uuids.isEmpty() && r.getDatSupPublik()==null) {
+			log.info("Suppression roleResp {} dans publik ", r.getCodStr());
+			//suppression du role
+			deleteRoleInPublik(r);
 		}
 
 	}
