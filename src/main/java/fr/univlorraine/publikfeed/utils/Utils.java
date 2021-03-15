@@ -121,10 +121,10 @@ public class Utils {
 			uj.setFirstName(p.getGivenName());
 			uj.setLastName(p.getSn());
 			uj.setEmail(p.getMail());
-			uj.setGender(2);
+			/*uj.setGender(2);
 			if(p.getSupannCivilite()!=null && p.getSupannCivilite().contentEquals("M.")) {
 				uj.setGender(1);
-			}
+			}*/
 			return uj;
 		}
 		return null;

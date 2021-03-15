@@ -21,7 +21,7 @@ public class UserJson {
 	@JsonProperty("email")
 	private String email;
 	
-	@JsonProperty("gender")
-	private int gender;
+	/*@JsonProperty("gender")
+	private int gender;*/
 	
 }

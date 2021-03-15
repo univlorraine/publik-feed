@@ -82,7 +82,7 @@ public class UsersSyncJob {
 
 			// Filtre ldap
 			String filtre = "(&"+filtreSyncUser+"(modifytimestamp>=" + dateLdap + "))";
-
+			
 			// Execution du filtre ldap
 			try {
 				log.info("execution du filtre ldap {} ...", filtre);
