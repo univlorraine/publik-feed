@@ -69,6 +69,7 @@ public class UsersView extends VerticalLayout implements HasDynamicTitle, HasHea
 	private final TextHeader header = new TextHeader();
 
 	private final Button refreshButton = new Button();
+	private final Button searchErrorButton = new Button();
 	private final TextField champRecherche = new TextField();
 	
 	private final Grid<UserHis> usersGrid = new Grid<>();
@@ -179,11 +180,26 @@ public class UsersView extends VerticalLayout implements HasDynamicTitle, HasHea
 		champRecherche.setWidth("300px");
 		champRecherche.setClearButtonVisible(true);
 		champRecherche.addValueChangeListener( e -> {
+			if(StringUtils.isBlank(champRecherche.getValue())) {
+				searchErrorButton.setVisible(false);
+			} else {
+				searchErrorButton.setVisible(true);
+			}
 			updateUsers(champRecherche.getValue());
 		});
 		buttonsLayout.add(champRecherche);
 		
+		searchErrorButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+		searchErrorButton.setIcon(VaadinIcon.AMBULANCE.create());
+		searchErrorButton.addClickListener(event -> searchErrorUser(champRecherche.getValue()));
+		searchErrorButton.setVisible(false);
+		buttonsLayout.add(searchErrorButton);
+		
 		add(buttonsLayout);
+	}
+	
+	private void searchErrorUser(String value) {
+		log.info("Search UserErrHis : {}", value);
 	}
 	
 	private Component getIdAndButtonColumn(UserHis u) {
@@ -222,6 +238,7 @@ public class UsersView extends VerticalLayout implements HasDynamicTitle, HasHea
 		setViewTitle(getTranslation("users.title"));
 
 		refreshButton.setText(getTranslation("users.refresh"));
+		searchErrorButton.setText(getTranslation("users.searcherror"));
 	}
 
 	private void setViewTitle(final String viewTitle) {

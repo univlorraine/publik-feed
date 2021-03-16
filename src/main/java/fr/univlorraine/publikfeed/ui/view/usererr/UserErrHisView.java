@@ -11,34 +11,26 @@ import javax.annotation.Resource;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.Grid.Column;
 import com.vaadin.flow.component.grid.Grid.SelectionMode;
-import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.Label;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.ListDataProvider;
-import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.i18n.LocaleChangeEvent;
 import com.vaadin.flow.i18n.LocaleChangeObserver;
 import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
 
 import fr.univlorraine.publikfeed.job.services.JobLauncher;
-import fr.univlorraine.publikfeed.model.app.entity.RoleResp;
 import fr.univlorraine.publikfeed.model.app.entity.UserErrHis;
-import fr.univlorraine.publikfeed.model.app.entity.UserRole;
 import fr.univlorraine.publikfeed.model.app.services.RoleAutoService;
 import fr.univlorraine.publikfeed.model.app.services.UserErrHisService;
 import fr.univlorraine.publikfeed.ui.layout.HasHeader;
@@ -115,6 +107,7 @@ public class UserErrHisView extends VerticalLayout implements HasDynamicTitle, H
 	}
 
 	private void initJobs() {
+		
 		HorizontalLayout buttonsLayout = new HorizontalLayout();
 		refreshButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 		refreshButton.addClickListener(event -> notifyClicked());
@@ -130,6 +123,8 @@ public class UserErrHisView extends VerticalLayout implements HasDynamicTitle, H
 		
 		add(buttonsLayout);
 	}
+
+
 
 	private void updateUserErrHis(String search) {
 		if(StringUtils.isBlank(search)) {
