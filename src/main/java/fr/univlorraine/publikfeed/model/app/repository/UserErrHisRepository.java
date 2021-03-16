@@ -20,4 +20,8 @@ public interface UserErrHisRepository extends JpaSpecificationExecutor<UserErrHi
 		nativeQuery = true)	
 	List<String> getLoginToRetry();
 
+	public List<UserErrHis> findAllByOrderByDatErrDesc();
+
+	public List<UserErrHis> findByLoginContainingIgnoreCaseOrTraceContainingIgnoreCase(String search, String search2);
+
 }

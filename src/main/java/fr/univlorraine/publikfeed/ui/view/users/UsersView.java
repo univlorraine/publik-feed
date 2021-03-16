@@ -18,14 +18,12 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.Grid.Column;
 import com.vaadin.flow.component.grid.Grid.SelectionMode;
-import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.ListDataProvider;
@@ -36,7 +34,6 @@ import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
 
 import fr.univlorraine.publikfeed.job.services.JobLauncher;
-import fr.univlorraine.publikfeed.model.app.entity.RoleResp;
 import fr.univlorraine.publikfeed.model.app.entity.UserHis;
 import fr.univlorraine.publikfeed.model.app.entity.UserRole;
 import fr.univlorraine.publikfeed.model.app.services.RoleAutoService;
@@ -193,7 +190,7 @@ public class UsersView extends VerticalLayout implements HasDynamicTitle, HasHea
 		HorizontalLayout hl = new HorizontalLayout();
 		hl.setMargin(false);
 		hl.setAlignItems(Alignment.CENTER);
-		Button details = new Button(usersGrid.isDetailsVisible(u) ? VaadinIcon.MINUS.create() : VaadinIcon.PLUS.create(),
+		Button details = new Button(usersGrid.isDetailsVisible(u) ? VaadinIcon.ANGLE_UP.create() : VaadinIcon.ANGLE_DOWN.create(),
 			e -> usersGrid.setDetailsVisible(u, !usersGrid.isDetailsVisible(u)));
 		Label label = new Label(u.getLogin());
 		hl.add(details);
@@ -202,7 +199,7 @@ public class UsersView extends VerticalLayout implements HasDynamicTitle, HasHea
 	}
 
 	private void updateUsers(String search) {
-		if(search==null) {
+		if(StringUtils.isBlank(search)) {
 			listUsers = userHisService.findAll();
 		} else {
 			listUsers = userHisService.findFor(search);

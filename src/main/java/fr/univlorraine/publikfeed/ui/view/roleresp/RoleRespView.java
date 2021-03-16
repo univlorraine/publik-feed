@@ -103,7 +103,7 @@ public class RoleRespView extends VerticalLayout implements HasDynamicTitle, Has
 		HorizontalLayout hl = new HorizontalLayout();
 		hl.setMargin(false);
 		hl.setAlignItems(Alignment.CENTER);
-		Button details = new Button(rolesGrid.isDetailsVisible(r) ? VaadinIcon.MINUS.create() : VaadinIcon.PLUS.create(),
+		Button details = new Button(rolesGrid.isDetailsVisible(r) ? VaadinIcon.ANGLE_UP.create() : VaadinIcon.ANGLE_DOWN.create(),
 			e -> rolesGrid.setDetailsVisible(r, !rolesGrid.isDetailsVisible(r)));
 		Label label = new Label(r.getCodStr());
 		hl.add(details);
@@ -263,7 +263,7 @@ public class RoleRespView extends VerticalLayout implements HasDynamicTitle, Has
 	
 
 	private void updateRole(String search) {
-		if(search==null) {
+		if(StringUtils.isBlank(search)) {
 			listRoles = roleRespService.findAll();
 		} else {
 			listRoles = roleRespService.findFor(search);

@@ -5,10 +5,14 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import fr.univlorraine.publikfeed.model.app.entity.UserErrHis;
+import fr.univlorraine.publikfeed.model.app.entity.UserHis;
 import fr.univlorraine.publikfeed.model.app.repository.UserErrHisRepository;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +40,21 @@ public class UserErrHisService implements Serializable {
 	public List<String> getUserToRetry() {
 		return userErrHisRepository.getLoginToRetry();
 	}
+
+	public List<UserErrHis> findAll() {
+		return userErrHisRepository.findAllByOrderByDatErrDesc();
+	}
+	public List<UserErrHis> findAllWithLimit() {
+		Pageable limit = PageRequest.of(0,200);
+		Page<UserErrHis> page = userErrHisRepository.findAll(limit);
+		return page.toList();
+		
+	}
+
+	public List<UserErrHis> findFor(String search) {
+		return userErrHisRepository.findByLoginContainingIgnoreCaseOrTraceContainingIgnoreCase(search, search);
+	}
+	
 	
 	
 }

@@ -117,7 +117,7 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 		HorizontalLayout hl = new HorizontalLayout();
 		hl.setMargin(false);
 		hl.setAlignItems(Alignment.CENTER);
-		Button details = new Button(rolesGrid.isDetailsVisible(r) ? VaadinIcon.MINUS.create() : VaadinIcon.PLUS.create(),
+		Button details = new Button(rolesGrid.isDetailsVisible(r) ? VaadinIcon.ANGLE_UP.create() : VaadinIcon.ANGLE_DOWN.create(),
 			e -> rolesGrid.setDetailsVisible(r, !rolesGrid.isDetailsVisible(r)));
 		Label label = new Label(r.getId());
 		hl.add(details);
@@ -509,7 +509,7 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 	}
 
 	private void updateRole(String search) {
-		if(search==null) {
+		if(StringUtils.isBlank(search)) {
 			listRoles = roleManuelService.findAllOrderByDateMaj();
 		} else {
 			listRoles = roleManuelService.findFor(search);
