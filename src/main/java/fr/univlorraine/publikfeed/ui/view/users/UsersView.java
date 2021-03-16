@@ -200,6 +200,7 @@ public class UsersView extends VerticalLayout implements HasDynamicTitle, HasHea
 	
 	private void searchErrorUser(String value) {
 		log.info("Search UserErrHis : {}", value);
+		UI.getCurrent().navigate("usererrhis/" + value);
 	}
 	
 	private Component getIdAndButtonColumn(UserHis u) {

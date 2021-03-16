@@ -26,7 +26,10 @@ import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.ListDataProvider;
 import com.vaadin.flow.i18n.LocaleChangeEvent;
 import com.vaadin.flow.i18n.LocaleChangeObserver;
+import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasDynamicTitle;
+import com.vaadin.flow.router.HasUrlParameter;
+import com.vaadin.flow.router.OptionalParameter;
 import com.vaadin.flow.router.Route;
 
 import fr.univlorraine.publikfeed.job.services.JobLauncher;
@@ -44,7 +47,7 @@ import lombok.extern.slf4j.Slf4j;
 @Route(layout = MainLayout.class)
 @SuppressWarnings("serial")
 @Slf4j
-public class UserErrHisView extends VerticalLayout implements HasDynamicTitle, HasHeader, LocaleChangeObserver {
+public class UserErrHisView extends VerticalLayout implements HasDynamicTitle, HasHeader, LocaleChangeObserver,  HasUrlParameter<String> {
 
 	@Resource
 	private UserErrHisService userErrHisService;
@@ -140,6 +143,13 @@ public class UserErrHisView extends VerticalLayout implements HasDynamicTitle, H
 	private void notifyClicked() {
 		Notification.show(getTranslation("errorusers.clicked", LocalTime.now()));
 		updateUserErrHis(champRecherche.getValue());
+	}
+	
+	@Override
+	public void setParameter(BeforeEvent beforeEvent, @OptionalParameter String value) {
+		if(!StringUtils.isBlank(value)) {
+			champRecherche.setValue(value);
+		}
 	}
 
 	/**
