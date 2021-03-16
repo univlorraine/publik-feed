@@ -1,10 +1,19 @@
 package fr.univlorraine.publikfeed.ui.view.rolemanuel;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -30,6 +39,8 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.upload.Upload;
+import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.data.provider.ListDataProvider;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.i18n.LocaleChangeEvent;
@@ -81,6 +92,8 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 	TextField filtreField = new TextField();
 	TextField loginsField = new TextField();
 	TextField loginsDefautField = new TextField();
+	
+	List<RoleManuel> listRoleToImport = new LinkedList<RoleManuel> ();
 
 	private final Grid<RoleManuel> rolesGrid = new Grid<>();
 	private final Column<RoleManuel> codeColumn = rolesGrid.addComponentColumn(r -> getIdAndButtonColumn(r))
@@ -384,12 +397,6 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 		button.addClickListener(event -> notifyClicked());
 		buttonsLayout.add(button);
 
-		buttonCsv.addThemeVariants(ButtonVariant.LUMO_CONTRAST);
-		buttonCsv.addClickListener(event -> uploadCsv());
-		// On masque le bouton pour l'instant
-		buttonCsv.setVisible(false);
-		buttonsLayout.add(buttonCsv);
-
 		champRecherche.setAutofocus(true);
 		champRecherche.setWidth("300px");
 		champRecherche.setClearButtonVisible(true);
@@ -443,9 +450,51 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 		});
 		buttonCreate.setVisible(false);
 		buttonsLayout.add(buttonCreate);
+		
+		
+		
+		buttonCsv.addThemeVariants(ButtonVariant.LUMO_CONTRAST);
+		buttonsLayout.add(buttonCsv);
+		buttonsLayout.add(buttonCsv);
+		
+		MemoryBuffer memoryBuffer = new MemoryBuffer();
+		Upload upload = new Upload(memoryBuffer);
+		upload.addFinishedListener(e -> {
+			log.info("Import CSV...");
+		    InputStream inputStream = memoryBuffer.getInputStream();
+		    List<String> text = new BufferedReader(
+		        new InputStreamReader(inputStream, StandardCharsets.UTF_8))
+		          .lines()
+		          .collect(Collectors.toList());
+		    log.info("-{}",text);
+		    convertListStringToRoleManuel(text);
+
+		});
+		upload.setVisible(false);
+		
+		buttonsLayout.add(upload);
+		buttonCsv.setText(getTranslation("rolemanuel.csv"));
+		buttonCsv.addClickListener(e-> {
+			upload.setVisible(!upload.isVisible());
+			buttonCsv.setText(upload.isVisible() ? "Masquer"  : getTranslation("rolemanuel.csv") );
+		});
 
 		add(buttonsLayout);
 	}
+
+	private void convertListStringToRoleManuel(List<String> liste) {
+		listRoleToImport.clear();
+		if(liste != null ) {
+			for(String role : liste) {
+				RoleManuel r = new RoleManuel();
+				String[] attributs = role.split(";");
+				r.setId(attributs[0].toUpperCase());
+				// TODO finir ou utiliser un mapperAuto?
+				listRoleToImport.add(r);
+			}
+		}
+	}
+
 
 	private RoleManuel creerRoleManuel() {
 		boolean ko = false;
@@ -532,7 +581,7 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 		setViewTitle(getTranslation("rolemanuel.title"));
 
 		button.setText(getTranslation("rolemanuel.refresh"));
-		buttonCsv.setText(getTranslation("rolemanuel.csv"));
+		//buttonCsv.setText(getTranslation("rolemanuel.csv"));
 	}
 
 	private void setViewTitle(final String viewTitle) {
