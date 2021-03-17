@@ -9,8 +9,10 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
@@ -38,6 +40,7 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
@@ -48,6 +51,7 @@ import com.vaadin.flow.i18n.LocaleChangeObserver;
 import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
 
+import elemental.json.Json;
 import fr.univlorraine.publikfeed.job.services.JobLauncher;
 import fr.univlorraine.publikfeed.model.app.entity.RoleManuel;
 import fr.univlorraine.publikfeed.model.app.services.RoleManuelService;
@@ -81,19 +85,32 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 
 	private final Button button = new Button();
 	FormLayout addLayout = new FormLayout();
+	VerticalLayout listImportLayout = new VerticalLayout();
+	HorizontalLayout importButtonLayout = new HorizontalLayout();
 	private final Button buttonNew = new Button();
 	private final Button buttonCancel= new Button();
 	private final Button buttonCreate= new Button();
 	private final TextField champRecherche = new TextField();
 	private final Button buttonCsv = new Button();
+	private final Button buttonImportList = new Button();
+	private final TextField infoFormatCsv = new TextField(getTranslation("rolemanuel.infocsvtitle"));
+	ProgressBar progressBar = new ProgressBar();
+	Label statusLabel = new Label();
+
+	private int nbRoleImporte = 0;
+
+	private MemoryBuffer memoryBuffer = new MemoryBuffer();
+	private Upload upload = new Upload(memoryBuffer);
 
 	TextField idField = new TextField();
 	TextField libField = new TextField();
 	TextField filtreField = new TextField();
 	TextField loginsField = new TextField();
 	TextField loginsDefautField = new TextField();
-	
+
+	Map<String, Boolean> mapRoleImportStatus = new HashMap<String, Boolean> ();
 	List<RoleManuel> listRoleToImport = new LinkedList<RoleManuel> ();
+	Map<String, String> mapAnomalieRoleImport = new HashMap<String, String> ();
 
 	private final Grid<RoleManuel> rolesGrid = new Grid<>();
 	private final Column<RoleManuel> codeColumn = rolesGrid.addComponentColumn(r -> getIdAndButtonColumn(r))
@@ -109,16 +126,50 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 		.setAutoWidth(true).setHeader("Etat");
 
 
+	private final Grid<RoleManuel> importGrid = new Grid<>();
+	private final Column<RoleManuel> etatImportColumn = importGrid.addComponentColumn(r -> getEtatImportColumn(r))
+		.setFlexGrow(0)
+		.setAutoWidth(true)
+		.setFrozen(true)
+		.setResizable(true).setHeader("Etat");
+	private final Column<RoleManuel> idImportColumn = importGrid.addColumn(r -> r.getId())
+		.setFlexGrow(0)
+		.setAutoWidth(true)
+		.setFrozen(true)
+		.setResizable(true).setHeader("ID");
+	private final Column<RoleManuel> libelleImportColumn = importGrid.addColumn(r -> r.getLibelle())
+		.setFlexGrow(1)
+		.setAutoWidth(true)
+		.setResizable(true).setHeader("Libellé");
+	private final Column<RoleManuel> filtreImportColumn = importGrid.addColumn(r -> r.getFiltre())
+		.setFlexGrow(1)
+		.setAutoWidth(true)
+		.setResizable(true).setHeader("Filtre");
+	private final Column<RoleManuel> loginsImportColumn = importGrid.addColumn(r -> r.getLogins())
+		.setFlexGrow(1)
+		.setAutoWidth(true)
+		.setResizable(true).setHeader("Logins");
+	private final Column<RoleManuel> loginsDefautImportColumn = importGrid.addColumn(r -> r.getLoginsDefaut())
+		.setFlexGrow(1)
+		.setAutoWidth(true)
+		.setResizable(true).setHeader("Logins par defaut");
+
 
 	List<RoleManuel> listRoles;
 
 	ListDataProvider<RoleManuel> dataProvider;
 
+	ListDataProvider<RoleManuel> dataImportProvider;
+
 	@PostConstruct
 	public void init() {
 		initJobs();
+		initImportLayout();
 		initAddForm();
 		initGrid();
+		importGrid.setItemDetailsRenderer(new ComponentRenderer<>(r -> {
+			return getDetailImportColumn(r);
+		}));
 		rolesGrid.setItemDetailsRenderer(new ComponentRenderer<>(r -> {
 			return getDetailColumn(r);
 		}));
@@ -177,6 +228,36 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 		return libelleLayout;
 
 	}
+
+	
+	private Component getDetailImportColumn(RoleManuel r) {
+		Label infoLabel = new Label(mapAnomalieRoleImport.get(r.getId()));
+		infoLabel.getStyle().set("color", "red");
+		infoLabel.getStyle().set("font-style", "oblique");
+		return infoLabel;
+	}
+	
+	private Component getEtatImportColumn(RoleManuel r) {
+		if(mapAnomalieRoleImport.containsKey(r.getId())) {
+			/*Button bugBtn = new Button( VaadinIcon.BUG.create(),
+				e -> importGrid.setDetailsVisible(r, !importGrid.isDetailsVisible(r)));
+			return bugBtn;*/
+			importGrid.setDetailsVisible(r,true);
+			return VaadinIcon.BUG.create();
+			
+		}
+		if(mapRoleImportStatus.containsKey(r.getId())) {
+			Boolean etat = mapRoleImportStatus.get(r.getId());
+			if(etat!=null && etat) {
+				return VaadinIcon.CHECK.create();
+			}
+			if(etat!=null && !etat) {
+				return VaadinIcon.BAN.create();
+			}
+		}
+		return VaadinIcon.CLOCK.create();
+	}
+
 	private Component getStateColumn(RoleManuel r) {
 		// Si le role n'est pas encore créé dans publik
 		if(r.getDatMaj()!=null && r.getDatSup()==null && r.getDatCrePublik()==null) {
@@ -201,6 +282,9 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 		}
 		return VaadinIcon.CHECK.create();
 	}
+	
+	
+	
 	private Component getDetailColumn(RoleManuel r) {
 
 		VerticalLayout detailLayout = new VerticalLayout();
@@ -283,8 +367,7 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 			checkBox.setVisible(true);
 		});
 
-
-
+		// Modification du role avec les données saisies
 		validButton.addClickListener(e -> {
 			try {
 				RoleManuel updatedRole = roleManuelService.updateFiltreAndLogins(r, filtreField.getValue(), loginsField.getValue(), loginsDefautField.getValue(), checkBox.getValue());
@@ -311,6 +394,9 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 		return detailLayout;
 	}
 
+	/**
+	 * Init du formulaire de création d'un role
+	 */
 	private void initAddForm() {
 
 		idField.setLabel("ID");
@@ -326,7 +412,7 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 
 		loginsField.setLabel("Logins");
 		loginsField.setPlaceholder("liste de logins séparés par une virgule");
-		
+
 		loginsDefautField.setLabel("Logins par défaut");
 		loginsDefautField.setPlaceholder("liste de logins par défaut séparés par une virgule");
 
@@ -351,52 +437,166 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 
 		addLayout.add(idField, libField, filtreField, loginsField, loginsDefautField);
 		addLayout.setResponsiveSteps(
-           new ResponsiveStep("40em", 1),
-           new ResponsiveStep("20em", 2),
-           new ResponsiveStep("20em", 3));
+			new ResponsiveStep("40em", 1),
+			new ResponsiveStep("20em", 2),
+			new ResponsiveStep("20em", 3));
 		addLayout.setColspan(libField, 2);
 		addLayout.setVisible(false);
 
 		add(addLayout);
 	}
 
+	/**
+	 * Check que les données requises sont renseignées et active ou non le bouton CREATE
+	 */
 	private void majFormData() {
+		// Check les données
 		if(formHasAllRequiredValues()) {
+			// Affichage du bouton
 			buttonCreate.setEnabled(true);
 		} else {
+			// Non affichage du bouton
 			buttonCreate.setEnabled(false);
 		}
 
 	}
 
-
+	/**
+	 * Check que les données requises sont renseignées
+	 * @return vrai si les données sont ok
+	 */
 	private boolean formHasAllRequiredValues() {
 		return (!StringUtils.isBlank(idField.getValue())
 			&& !StringUtils.isBlank(libField.getValue()) 
 			&& (!StringUtils.isBlank(filtreField.getValue()) 
-				|| !StringUtils.isBlank(loginsField.getValue()) ));
+				|| !StringUtils.isBlank(loginsField.getValue())));
+	}
+	
+	/**
+	 * Check que les données requises sont renseignées
+	 * @return vrai si les données sont ok
+	 */
+	private boolean formHasAllRequiredValues(RoleManuel r) {
+		return (!StringUtils.isBlank(r.getId())
+			&& !StringUtils.isBlank(r.getLibelle()) 
+			&& (!StringUtils.isBlank(r.getFiltre()) 
+				|| !StringUtils.isBlank(r.getLogins())));
 	}
 
 
+	/**
+	 * Init de la grid des roles présents en base de données
+	 */
 	private void initGrid() {
-
+		// Init des parametres de la grid
 		rolesGrid.setHeightFull();
 		rolesGrid.setSelectionMode(SelectionMode.NONE);
 		rolesGrid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
-
 		rolesGrid.setPageSize(40);
-		
+		// Refresh pour afficher tous les roles
 		updateRole(null);
-
+		// ajout de la grid au layout
 		add(rolesGrid);
 	}
 
+	/**
+	 * Création du layout d'init (bouton import, progressBar, label de progression et Grid)
+	 */
+	private void initImportLayout() {
+		//Ajout bouton d'import au layout
+		buttonImportList.setText("Importer");
+		buttonImportList.setIcon(VaadinIcon.CLOUD_DOWNLOAD_O.create());
+		importButtonLayout.add(buttonImportList);
+		//Ajout progressBar au layout
+		progressBar.setWidth("200px");
+		progressBar.setHeight("20px");
+		progressBar.setVisible(false);
+		importButtonLayout.add(progressBar);
+		//Ajout statusLabel au layout
+		importButtonLayout.add(statusLabel);
+		// Clic du bouton pour lancer l'import dans la base
+		buttonImportList.addClickListener(e -> {
+			log.info("Import des role : {} ",buttonImportList);
+			// init des variables de suivi de l'import
+			nbRoleImporte = 0;
+			buttonImportList.setEnabled(false);
+			progressBar.setVisible(true);
+			double ratio = nbRoleImporte * 1.0 / listRoleToImport.size();
+			progressBar.setValue(ratio);
+			statusLabel.setText(nbRoleImporte + " / " + listRoleToImport.size());
+			//Lancement de l'import des roles en base
+			importList();
+		});
+		// AJout des composants au layout d'import
+		listImportLayout.add(importButtonLayout);
+		listImportLayout.add(importGrid);
+		listImportLayout.setVisible(false);
+		add(listImportLayout);
+	}
+
+	/**
+	 * Import des roles injectés via CSV dans la base
+	 */
+	private void importList() {
+		if(listRoleToImport!=null && !listRoleToImport.isEmpty()) {
+			//Pour chaque role
+			for(RoleManuel r : listRoleToImport) {
+				try {
+					//creer le role dans la base
+					r.setDatMaj(LocalDateTime.now());
+					r = roleManuelService.saveRole(r);
+					//Ajout du status d'import du role dans la map
+					mapRoleImportStatus.put(r.getId(), true);
+				}catch (Exception e) {
+					log.warn("Creation roleManuel dans la base échoué",e);
+					//Ajout du status d'import du role dans la map
+					mapRoleImportStatus.put(r.getId(), false);
+					mapAnomalieRoleImport.put(r.getId(), getTranslation("rolemanuel.importko"));
+				}
+				//increment du compteur
+				nbRoleImporte++;
+				//maj de la progressBar
+				double ratio = nbRoleImporte * 1.0 / listRoleToImport.size();
+				progressBar.setValue(ratio);
+				//maj du label
+				statusLabel.setText(nbRoleImporte + " / " + listRoleToImport.size());
+				//Refresh de la ligne de la grid correspondant au role importé
+				importGrid.getDataProvider().refreshItem(r);
+			}
+		}
+	}
+
+	/**
+	 * Refresh l'affichage de la grid contenant les roles à importer
+	 */
+	private void refreshImportLayout() {
+		// Maj du contenu de importGrid
+		dataImportProvider = new ListDataProvider<>(listRoleToImport);
+		importGrid.setDataProvider(dataImportProvider);
+		// On affiche le layout contenant la grid
+		listImportLayout.setVisible(true);
+		// On masque la grid affichant le contenu de la table des roles manuels
+		rolesGrid.setVisible(false);
+		// Si tous les roles valident les prérequis
+		if(mapAnomalieRoleImport.isEmpty()) {
+			//Activation du bouton d'import
+			buttonImportList.setEnabled(true);
+		} else {
+			// Désactivation du bouton d'import
+			buttonImportList.setEnabled(false);
+		}
+	}
+
+	/**
+	 * Init des boutons d'action
+	 */
 	private void initJobs() {
 		HorizontalLayout buttonsLayout = new HorizontalLayout();
+		// Bouton refresh
 		button.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 		button.addClickListener(event -> notifyClicked());
 		buttonsLayout.add(button);
-
+		// Champ de recherche
 		champRecherche.setAutofocus(true);
 		champRecherche.setWidth("300px");
 		champRecherche.setClearButtonVisible(true);
@@ -404,7 +604,7 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 			updateRole(champRecherche.getValue());
 		});
 		buttonsLayout.add(champRecherche);
-
+		// Bouton d'affichage du formulaire de création d'un role
 		buttonNew.setText("Nouveau rôle");
 		buttonNew.setIcon(VaadinIcon.PLUS.create());
 		buttonNew.addClickListener(event -> {
@@ -413,9 +613,10 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 			buttonCreate.setVisible(true);
 			buttonCreate.setEnabled(false);
 			buttonNew.setVisible(false);
+			buttonCsv.setVisible(false);
 		});
 		buttonsLayout.add(buttonNew);
-
+		// Bouton d'annulation de création d'un role par formulaire
 		buttonCancel.setText("Annuler");
 		buttonCancel.setIcon(VaadinIcon.ARROW_BACKWARD.create());
 		buttonCancel.addClickListener(event -> {
@@ -423,10 +624,11 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 			buttonCancel.setVisible(false);
 			buttonCreate.setVisible(false);
 			buttonNew.setVisible(true);
+			buttonCsv.setVisible(true);
 		});
 		buttonCancel.setVisible(false);
 		buttonsLayout.add(buttonCancel);
-
+		// Bouton qui lance la création du role saisi dans le formulaire
 		buttonCreate.setText("Créer le rôle");
 		buttonCreate.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
 		buttonCreate.setIcon(VaadinIcon.CHECK.create());
@@ -450,54 +652,108 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 		});
 		buttonCreate.setVisible(false);
 		buttonsLayout.add(buttonCreate);
-		
-		
-		
+		// Bouton pour afficher/masquer les outils d'import par CSV
 		buttonCsv.addThemeVariants(ButtonVariant.LUMO_CONTRAST);
 		buttonsLayout.add(buttonCsv);
 		buttonsLayout.add(buttonCsv);
-		
-		MemoryBuffer memoryBuffer = new MemoryBuffer();
-		Upload upload = new Upload(memoryBuffer);
+		// Réception des données d'un CSV
 		upload.addFinishedListener(e -> {
+			listRoleToImport.clear();
+			mapRoleImportStatus.clear();
+			progressBar.setValue(0);
+			statusLabel.setText("");
 			log.info("Import CSV...");
-		    InputStream inputStream = memoryBuffer.getInputStream();
-		    List<String> text = new BufferedReader(
-		        new InputStreamReader(inputStream, StandardCharsets.UTF_8))
-		          .lines()
-		          .collect(Collectors.toList());
-		    log.info("-{}",text);
-		    convertListStringToRoleManuel(text);
+			InputStream inputStream = memoryBuffer.getInputStream();
+			List<String> text = new BufferedReader(
+				new InputStreamReader(inputStream, StandardCharsets.UTF_8))
+				.lines()
+				.collect(Collectors.toList());
+			log.info("-{}",text);
+			convertListStringToRoleManuel(text);
 
 		});
 		upload.setVisible(false);
-		
 		buttonsLayout.add(upload);
+		// Gestion de l'affichage lors du clic sur le boutonCsv
 		buttonCsv.setText(getTranslation("rolemanuel.csv"));
+		buttonCsv.setIcon(VaadinIcon.PLUS.create());
 		buttonCsv.addClickListener(e-> {
 			upload.setVisible(!upload.isVisible());
-			buttonCsv.setText(upload.isVisible() ? "Masquer"  : getTranslation("rolemanuel.csv") );
+			buttonNew.setEnabled(!upload.isVisible());
+			if(upload.isVisible()) {
+				buttonCsv.setText( "Annuler" );
+				buttonCsv.setIcon(VaadinIcon.ARROW_BACKWARD.create());
+				infoFormatCsv.setVisible(true);
+				rolesGrid.setVisible(false);
+			} else {
+				listRoleToImport.clear();
+				mapRoleImportStatus.clear();
+				progressBar.setValue(0);
+				statusLabel.setText("");
+				infoFormatCsv.setVisible(false);
+				upload.getElement().setPropertyJson("files", Json.createArray());
+				buttonCsv.setText(getTranslation("rolemanuel.csv") );
+				buttonCsv.setIcon(VaadinIcon.PLUS.create());
+				rolesGrid.setVisible(true);
+				listImportLayout.setVisible(false);
+			}
 		});
 
 		add(buttonsLayout);
+		
+		infoFormatCsv.setValue(getTranslation("rolemanuel.infocsv"));
+		infoFormatCsv.setReadOnly(true);
+		infoFormatCsv.setWidth("25em");
+		infoFormatCsv.setVisible(false);
+		add(infoFormatCsv);
 	}
 
+	/**
+	 * Conversion de la liste de String en liste de roleManuel et ajout dans listRoleToImport
+	 * @param liste
+	 */
 	private void convertListStringToRoleManuel(List<String> liste) {
 		listRoleToImport.clear();
+		mapAnomalieRoleImport.clear();
 		if(liste != null ) {
+			// Pour chaque String de la liste
 			for(String role : liste) {
+				// Création d'un RoleManuel correspondant
 				RoleManuel r = new RoleManuel();
 				String[] attributs = role.split(";");
 				r.setId(attributs[0].toUpperCase());
-				// TODO finir ou utiliser un mapperAuto?
+				r.setLibelle(attributs[1]);
+				r.setFiltre(attributs[2]);
+				r.setLogins(attributs[3]);
+				// Si on a une derniere valeur
+				if(attributs.length>4) {
+					//Il s'agit du login par défaut
+					r.setLoginsDefaut(attributs[4]);
+				}
+				// AJout du role à la liste
 				listRoleToImport.add(r);
+				
+				// Si il manque des infos obligatoires
+				if(!formHasAllRequiredValues(r) ) {
+					mapAnomalieRoleImport.put(r.getId(),getTranslation("rolemanuel.nonprerequis") );
+				}
+				// Si le role existe déjà
+				if (roleManuelService.findRole(r.getId()).isPresent()) {
+					mapAnomalieRoleImport.put(r.getId(),getTranslation("rolemanuel.existedeja") );
+				}
 			}
+			// Refresh de la grid
+			refreshImportLayout();
 		}
 	}
 
 
+	/**
+	 * Création du role manuel renseigné dans le formulaire
+	 */
 	private RoleManuel creerRoleManuel() {
 		boolean ko = false;
+		// Vérification des données saisies
 		if(StringUtils.isBlank(idField.getValue()) || !idField.getValue().matches("[0-9A-Z][0-9A-Z_]*[0-9A-Z]")) {
 			Notification.show("L'id n'est pas valide");
 			ko = true;
@@ -517,13 +773,13 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 		if(ko) {
 			return null;
 		}
-		
-		// creer le role et refreshAll
+
+		// Création du RoleManuel
 		RoleManuel newRole = new RoleManuel();
 		newRole.setId(idField.getValue());
 		newRole.setLibelle(libField.getValue());
 		if(!StringUtils.isBlank(loginsDefautField.getValue())) {
-		newRole.setLoginsDefaut(loginsDefautField.getValue());
+			newRole.setLoginsDefaut(loginsDefautField.getValue());
 		}
 		if(!StringUtils.isBlank(filtreField.getValue())) {
 			newRole.setFiltre(filtreField.getValue());
@@ -532,8 +788,10 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 			newRole.setLogins(loginsField.getValue());
 		}
 		newRole.setDatMaj(LocalDateTime.now());
-		newRole = roleManuelService.saveRole(newRole);
 		
+		// Création du role en base
+		newRole = roleManuelService.saveRole(newRole);
+
 		// reset formulaire si création ok
 		idField.clear();
 		libField.clear();
@@ -541,33 +799,31 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 		loginsField.clear();
 		loginsDefautField.clear();
 		
+		// On retourne le role
 		return newRole;
-		
-		
+
 	}
 
-
-	private RoleManuel addRole() {
-		// TODO popup ajout role
-		return null;
-	}
-
-
-	private void uploadCsv() {
-		Notification.show(getTranslation("rolemanuel.clicked", LocalTime.now()));
-	}
-
+	/**
+	 * Maj de la grid des roles présents en base à partir de la chaine en parametre
+	 */
 	private void updateRole(String search) {
+		// Si la chaine est vide
 		if(StringUtils.isBlank(search)) {
+			// Récupération de tous les Roles triés
 			listRoles = roleManuelService.findAllOrderByDateMaj();
 		} else {
+			// Recherche des roles en fonction de la chaine en parametre
 			listRoles = roleManuelService.findFor(search);
 		}
+		// Maj du contenu de la grid
 		dataProvider = new ListDataProvider<>(listRoles);
 		rolesGrid.setDataProvider(dataProvider);
 	}
 
-
+	/**
+	 * Nofitication du clic et lancement de refresh de la grid
+	 */
 	private void notifyClicked() {
 		Notification.show(getTranslation("rolemanuel.clicked", LocalTime.now()));
 		updateRole(champRecherche.getValue());
