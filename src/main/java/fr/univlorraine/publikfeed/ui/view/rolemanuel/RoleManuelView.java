@@ -238,6 +238,7 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 	}
 	
 	private Component getEtatImportColumn(RoleManuel r) {
+		importGrid.setDetailsVisible(r,false);
 		if(mapAnomalieRoleImport.containsKey(r.getId())) {
 			/*Button bugBtn = new Button( VaadinIcon.BUG.create(),
 				e -> importGrid.setDetailsVisible(r, !importGrid.isDetailsVisible(r)));
