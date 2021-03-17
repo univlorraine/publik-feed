@@ -238,7 +238,9 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 	}
 	
 	private Component getEtatImportColumn(RoleManuel r) {
+		// par défaut on masque la ligne détail
 		importGrid.setDetailsVisible(r,false);
+		// Si le role a des anomalies
 		if(mapAnomalieRoleImport.containsKey(r.getId())) {
 			/*Button bugBtn = new Button( VaadinIcon.BUG.create(),
 				e -> importGrid.setDetailsVisible(r, !importGrid.isDetailsVisible(r)));
@@ -247,12 +249,16 @@ public class RoleManuelView extends VerticalLayout implements HasDynamicTitle, H
 			return VaadinIcon.BUG.create();
 			
 		}
+		// Si le role a un status d'import
 		if(mapRoleImportStatus.containsKey(r.getId())) {
+			// Récupération de l'état de l'import
 			Boolean etat = mapRoleImportStatus.get(r.getId());
 			if(etat!=null && etat) {
+				// Import OK
 				return VaadinIcon.CHECK.create();
 			}
 			if(etat!=null && !etat) {
+				// Import KO
 				return VaadinIcon.BAN.create();
 			}
 		}
