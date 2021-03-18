@@ -61,6 +61,10 @@ public class UserHisService implements Serializable {
 	public List<UserHis> findFor(String search) {
 		return userHisRepository.findByLoginContainingIgnoreCaseOrDataContainingIgnoreCase(search, search);
 	}
+
+	public List<UserHis> findAllActiv() {
+		return userHisRepository.findAllByDatSupNull();
+	}
 	
 	
 }

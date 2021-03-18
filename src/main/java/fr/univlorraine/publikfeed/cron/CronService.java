@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import fr.univlorraine.publikfeed.job.RolesManuelsSyncJob;
 import fr.univlorraine.publikfeed.job.RolesResponsableSyncJob;
 import fr.univlorraine.publikfeed.job.SupprRolesManuelsInactifJob;
+import fr.univlorraine.publikfeed.job.SupprUsersSyncJob;
 import fr.univlorraine.publikfeed.job.UsersSyncJob;
 import fr.univlorraine.publikfeed.utils.CronUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +24,9 @@ public class CronService  implements Serializable {
 	private UsersSyncJob usersSyncJob;
 	
 	@Autowired
+	private SupprUsersSyncJob supprUsersSyncJob;
+	
+	@Autowired
 	private RolesManuelsSyncJob rolesManuelsSyncJob;
 	
 	@Autowired
@@ -35,6 +39,11 @@ public class CronService  implements Serializable {
 	@Scheduled(cron = CronUtils.CRON_SYNC_USERS)
 	public void cronJobSyncUsers() {
 		usersSyncJob.syncUsers();
+	}
+	
+	@Scheduled(cron = CronUtils.CRON_SYNC_SUPPR_USERS)
+	public void cronJobSyncSupprUsers() {
+		supprUsersSyncJob.syncUsers();
 	}
 	
 	@Scheduled(cron = CronUtils.CRON_SYNC_ROLE_MANUEL)

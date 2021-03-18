@@ -8,6 +8,7 @@ import fr.univlorraine.publikfeed.job.RolesManuelsSyncJob;
 import fr.univlorraine.publikfeed.job.RolesResponsableSyncJob;
 import fr.univlorraine.publikfeed.job.RolesUnitairesSupprJob;
 import fr.univlorraine.publikfeed.job.SupprRolesManuelsInactifJob;
+import fr.univlorraine.publikfeed.job.SupprUsersSyncJob;
 import fr.univlorraine.publikfeed.job.UsersSyncJob;
 import fr.univlorraine.publikfeed.utils.JobUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +20,9 @@ public class JobLauncher {
 
 	@Autowired
 	private UsersSyncJob usersSyncJob;
+	
+	@Autowired
+	private SupprUsersSyncJob supprUsersSyncJob;
 	
 	@Autowired
 	private RolesUnitairesSupprJob supprRoleUnitaireJob;
@@ -37,6 +41,9 @@ public class JobLauncher {
 		switch(jobName) {
 			case JobUtils.SYNC_USERS_JOB : 
 				usersSyncJob.syncUsers();
+				break;
+			case JobUtils.SYNC_SUPPR_USERS_JOB : 
+				supprUsersSyncJob.syncUsers();
 				break;
 			case JobUtils.SYNC_ROLES_MANUELS_JOB :
 				rolesManuelsSyncJob.syncRoles();

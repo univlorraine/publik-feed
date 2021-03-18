@@ -13,6 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public final class JobUtils {
 
+	public static final String SYNC_SUPPR_USERS_JOB = "SupprSyncUsersJob";
+	
 	public static final String SYNC_USERS_JOB = "SyncUsersJob";
 
 	public static final String SYNC_RESP_ROLE_JOB = "SyncRespRoleJob";
@@ -32,8 +34,11 @@ public final class JobUtils {
 	public static final List<String> jobList = new LinkedList<>();
 
 	
+
+	
 	static {
 		jobList.add(JobUtils.SYNC_USERS_JOB);
+		jobList.add(JobUtils.SYNC_SUPPR_USERS_JOB);
 		jobList.add(JobUtils.SYNC_RESP_ROLE_JOB);
 		jobList.add(JobUtils.SYNC_ROLES_MANUELS_JOB);
 		jobList.add(JobUtils.SUPPR_ROLES_MANUELS_INACTIFS);

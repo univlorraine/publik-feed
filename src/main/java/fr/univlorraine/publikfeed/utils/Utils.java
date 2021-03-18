@@ -194,6 +194,14 @@ public class Utils {
 		return hash;
 	}
 
+	public static List<String> listPeopleToListLogin(List<PeopleLdap> lp) {
+		List<String> list = new LinkedList<String> ();
+		for(PeopleLdap p : lp) {
+			list.add(p.getUid());
+		}
+		return list;
+	}
+
 	
 
 
