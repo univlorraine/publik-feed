@@ -2,6 +2,7 @@ package fr.univlorraine.publikfeed.model.app.entity;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 import javax.persistence.Column;
 import javax.persistence.Convert;
@@ -48,6 +49,31 @@ public class UserHis implements Serializable {
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd@HH:mm:ss")
 	private LocalDateTime datSup;
 
-
+	/**
+     * cf. https://vladmihalcea.com/how-to-implement-equals-and-hashcode-using-the-jpa-entity-identifier
+     *
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+	@Override
+    public boolean equals(final Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof UserHis)) {
+            return false;
+        }
+        UserHis other = (UserHis) obj;
+        return login != null && login.equals(other.getLogin());
+    }
+	
+	/**
+     * cf. https://vladmihalcea.com/how-to-implement-equals-and-hashcode-using-the-jpa-entity-identifier
+     *
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        return Objects.hash(getLogin());
+    }
 
 }
