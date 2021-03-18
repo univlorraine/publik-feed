@@ -2,6 +2,7 @@ package fr.univlorraine.publikfeed.ui.view.users;
 
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -33,7 +34,10 @@ import com.vaadin.flow.i18n.LocaleChangeObserver;
 import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
 
+import fr.univlorraine.publikfeed.controllers.UserPublikController;
 import fr.univlorraine.publikfeed.job.services.JobLauncher;
+import fr.univlorraine.publikfeed.ldap.entity.PeopleLdap;
+import fr.univlorraine.publikfeed.ldap.services.LdapGenericService;
 import fr.univlorraine.publikfeed.model.app.entity.UserHis;
 import fr.univlorraine.publikfeed.model.app.entity.UserRole;
 import fr.univlorraine.publikfeed.model.app.services.RoleAutoService;
@@ -57,6 +61,9 @@ public class UsersView extends VerticalLayout implements HasDynamicTitle, HasHea
 	private JobLauncher jobLauncher;
 	@Resource
 	private RoleAutoService roleAutoService;
+	@Resource
+	private UserPublikController userPublikController;
+
 
 	/** Thread pool  */
 	ExecutorService executorService = Executors.newSingleThreadExecutor();
@@ -153,6 +160,35 @@ public class UsersView extends VerticalLayout implements HasDynamicTitle, HasHea
 			}
 		}
 		detailLayout.add(roleAutoLayout);
+		
+		Button deleteButton = new Button("Supprimer de Publik");
+		deleteButton.setIcon(VaadinIcon.TRASH.create());
+		deleteButton.addClickListener(e-> {
+			if(userPublikController.suppressionUser(u)) {
+				Optional<UserHis> uh=userHisService.find(u.getLogin());
+				usersGrid.getDataProvider().refreshItem(uh.get());
+				Notification.show(getTranslation("users.suppr.ok.notif", LocalTime.now()));
+			}else {
+				Notification.show(getTranslation("users.suppr.ko.notif", LocalTime.now()));
+			}	
+		});
+		deleteButton.setVisible(u.getDatSup()==null);
+		detailLayout.add(deleteButton);
+		
+		
+		Button addButton = new Button("Créer dans Publik");
+		addButton.setIcon(VaadinIcon.ADD_DOCK.create());
+		addButton.addClickListener(e-> {
+			if(userPublikController.createOrUpdateUser(u.getLogin())) {
+				Optional<UserHis> uh=userHisService.find(u.getLogin());
+				usersGrid.getDataProvider().refreshItem(uh.get());
+				Notification.show(getTranslation("users.add.ok.notif", LocalTime.now()));
+			}else {
+				Notification.show(getTranslation("users.add.ko.notif", LocalTime.now()));
+			}	
+		});
+		addButton.setVisible(u.getDatSup()!=null);
+		detailLayout.add(addButton);
 
 		return detailLayout;
 	}

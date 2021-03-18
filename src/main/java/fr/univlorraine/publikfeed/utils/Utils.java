@@ -49,6 +49,8 @@ public class Utils {
 	
 	public static final String PREFIX_ROLE_RESP = "ZZR_";
 	
+	public static final String EPPN_SUFFIX = "@univ-lorraine.fr";
+	
 	public static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).localizedBy(Locale.FRANCE);
 
 	

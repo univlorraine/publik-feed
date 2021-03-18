@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.support.BasicAuthenticationInterceptor;
 import org.springframework.stereotype.Service;
@@ -165,6 +166,36 @@ public class UserPublikApiService {
 		}
 		return null;
 
+	}
+
+
+
+	public boolean deleteUser(String uuid) {
+		log.info("deleteUser : {}", uuid);
+		// On récupère l'URL de l'api
+		String purl = apiUrl + USERS + "/{uuid}/";
+
+		//Body
+		Map<String,String> params = new HashMap<String,String>();
+		params.put("uuid", uuid);
+
+
+		RestTemplate rt = new RestTemplate();
+
+		log.info("call url : " + purl + " uuid =>" + uuid);
+
+		rt.getInterceptors().add(new BasicAuthenticationInterceptor(apiUsername, apiPassword));
+		//Appelle du WS qui retourne le user publik
+		ResponseEntity<String> response = rt.exchange(purl, HttpMethod.DELETE,null, String.class, params);
+
+		log.info("Publik Response :" + response);
+
+		//Si on a eu une réponse
+		if (response.getStatusCode().equals(HttpStatus.OK) || response.getStatusCode().equals(HttpStatus.NO_CONTENT)) {
+			log.info("Suppression user reponse OK : {}", response.getStatusCode());
+			return true;
+		}
+		return false;
 	}
 
 

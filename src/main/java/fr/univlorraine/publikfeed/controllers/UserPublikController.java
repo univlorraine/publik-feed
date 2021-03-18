@@ -16,6 +16,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.univlorraine.publikfeed.json.entity.RoleJson;
 import fr.univlorraine.publikfeed.json.entity.UserJson;
 import fr.univlorraine.publikfeed.ldap.entity.PeopleLdap;
+import fr.univlorraine.publikfeed.ldap.exceptions.LdapServiceException;
+import fr.univlorraine.publikfeed.ldap.services.LdapGenericService;
 import fr.univlorraine.publikfeed.model.app.entity.RoleAuto;
 import fr.univlorraine.publikfeed.model.app.entity.UserHis;
 import fr.univlorraine.publikfeed.model.app.entity.UserRole;
@@ -46,8 +48,25 @@ public class UserPublikController {
 
 	@Resource
 	private RolePublikApiService rolePublikApiService;
+	
 
-	public void createOrUpdateUser(PeopleLdap p) throws Exception {
+	@Resource
+	private LdapGenericService<PeopleLdap> ldapPeopleService;
+
+	
+	public boolean createOrUpdateUser(String login) {
+		try {
+			PeopleLdap p = ldapPeopleService.findByPrimaryKey(login);
+			if(p!=null) {
+				return createOrUpdateUser(p);
+			}
+		} catch (Exception e) {
+			log.warn("Une exception est survenue pendant la création de "+login + " dans Publik",e);
+		}
+		return false;
+	} 
+	
+	public boolean createOrUpdateUser(PeopleLdap p) throws Exception {
 
 		String userUuid=null;
 
@@ -86,8 +105,8 @@ public class UserPublikController {
 				log.info("{} present en base", p.getUid());
 			}
 
-			// Si on a toujours aucune entrée en base
-			if(!ouh.isPresent()) {
+			// Si on a toujours aucune entrée en base ou qu'il est supprimé dans publik
+			if(!ouh.isPresent() || ouh.get().getDatSup()!=null) {
 				log.info("Le compte {} doit etre créé dans Publik",p.getUid());
 				// créer le user dans Publik
 				UserPublikApi response = userPublikApiService.createUser(userLdap);
@@ -158,9 +177,11 @@ public class UserPublikController {
 
 			// Vérification des roles nominatifs
 			checkRolesUnitaires(p, userUuid);
+			
 		} else {
 			log.info("{} dateMaj superieure au modifytimestamp. Compte non traite", p.getUid());
 		}
+		return true;
 
 	}
 
@@ -168,9 +189,11 @@ public class UserPublikController {
 		List<String> listeRole = new LinkedList<String> ();
 
 		// Si ce n'est pas un étudiant
-		if(StringUtils.hasText(p.getSupannEtuId()) && !StringUtils.hasText(p.getSupannEmpId())) {
+		//if(StringUtils.hasText(p.getSupannEtuId()) && !StringUtils.hasText(p.getSupannEmpId())) {
+		// Si ce n'est pas un étudiant ou que c'est un doctorant
+		if(!StringUtils.hasText(p.getSupannEtuId()) || StringUtils.hasText(p.getSupannEmpId())) {	
 			// Traitement role unitaire nominatif
-			String roleName = Utils.PREFIX_ROLE_UNITAIRE + Utils.PREFIX_ROLE_NOMINATIF + p.getEduPersonPrincipalName();
+			String roleName =  getRoleUnitairePersonnel(p.getEduPersonPrincipalName());
 			createOrUpdateRole(roleName, p.getUid(), userUuid);
 			listeRole.add(roleName);
 		}
@@ -286,7 +309,7 @@ public class UserPublikController {
 		}
 		return false;
 	}
-	
+
 	public void ajoutUuidsFromLogin(List<String> uuids, String logins) {
 		// ajout admins par defaut
 		String[] tlogins = logins.split(",");
@@ -305,5 +328,76 @@ public class UserPublikController {
 		}
 
 	}
+
+	public boolean suppressionUser(UserHis user) {
+
+		// Si on a l'uuid publik 
+		if(StringUtils.hasText(user.getUuid()) ) {
+			// Suppression du user dans publik
+			if(userPublikApiService.deleteUser(user.getUuid())) {
+
+				// récupération de l'uuid du role spécifique à la personne
+				String roleEppnId = getRoleUnitairePersonnel(user.getLogin() + Utils.EPPN_SUFFIX);
+
+				// Si le user possede le role eppn dans la base
+				Optional<UserRole> roleEppn = roleAutoService.findUserRole(user.getLogin(), roleEppnId);
+				if(roleEppn.isPresent()) {
+					// Récupération du role dans la base
+					Optional<RoleAuto> roleAuto = roleAutoService.findRole(roleEppnId);
+					// Si on a trouvé le role dans la base
+					if(roleAuto.isPresent()) {
+						// Suppression du role spécifique de la personne dans publik
+						if(rolePublikApiService.deleteRole(roleAuto.get().getUuid())) {
+							log.info(" Role {} ({}) supprimé dans Publik", roleAuto.get().getId(), roleAuto.get().getUuid());
+
+							// Maj bdd du lien avec le user
+							roleEppn.get().setDatMaj(LocalDateTime.now());
+							roleEppn.get().setDatSup(LocalDateTime.now());
+							UserRole userRoleEppnBdd = roleAutoService.saveUserRole(roleEppn.get());
+
+							log.info("Date suppr du lien User - Role : {} - {} mis a jour dans la base",userRoleEppnBdd.getId().getLogin(), userRoleEppnBdd.getId().getRoleId());
+							
+							// Maj bdd du role
+							roleAuto.get().setDatMaj(LocalDateTime.now());
+							roleAuto.get().setDatSup(LocalDateTime.now());
+							RoleAuto roleEppnBdd = roleAutoService.saveRole(roleAuto.get());
+
+							log.info("Date suppr du Role {} mis a jour dans la base", roleEppnBdd.getDatSup());
+
+						}
+						
+					}
+				}
+				
+				// suppression dans la base de tous les roles associés à la personne (fait automatiquement dans publik lors de la suppr de la personne)
+				List<UserRole> listRole = roleAutoService.findRolesFromLogin(user.getLogin());
+				if(listRole != null && !listRole.isEmpty()) {
+					for(UserRole ur : listRole) {
+						if(ur!=null && ur.getDatSup()==null) {
+							ur.setDatSup(LocalDateTime.now());
+							ur = roleAutoService.saveUserRole(ur);
+							log.info("Date suppr du lien User - Role : {} - {} mis a jour dans la base", ur.getId().getLogin(), ur.getId().getRoleId());
+							
+						}
+					}
+				}
+				
+				// TODO Probleme des roles qui se retrouvent potentiellement vide?
+
+				// maj des roles de la personne dans la base de données
+				user.setDatSup(LocalDateTime.now());
+				user = userHisService.save(user);
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private String getRoleUnitairePersonnel(String eppn) {
+		return Utils.PREFIX_ROLE_UNITAIRE + Utils.PREFIX_ROLE_NOMINATIF + eppn;
+	}
+
+
 
 }
