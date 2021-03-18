@@ -77,6 +77,7 @@ public class UsersView extends VerticalLayout implements HasDynamicTitle, HasHea
 
 	private final Button refreshButton = new Button();
 	private final Button searchErrorButton = new Button();
+	private final Button importButton = new Button();
 	private final TextField champRecherche = new TextField();
 	
 	private final Grid<UserHis> usersGrid = new Grid<>();
@@ -225,11 +226,21 @@ public class UsersView extends VerticalLayout implements HasDynamicTitle, HasHea
 		});
 		buttonsLayout.add(champRecherche);
 		
+		
 		searchErrorButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 		searchErrorButton.setIcon(VaadinIcon.AMBULANCE.create());
 		searchErrorButton.addClickListener(event -> searchErrorUser(champRecherche.getValue()));
 		searchErrorButton.setVisible(false);
 		buttonsLayout.add(searchErrorButton);
+		
+		importButton.setText("Importer");
+		importButton.setIcon(VaadinIcon.PLUS.create());
+		importButton.setVisible(false);
+		importButton.addClickListener(e-> {
+			userPublikController.createOrUpdateUser(champRecherche.getValue());
+			updateUsers(champRecherche.getValue());
+		});
+		buttonsLayout.add(importButton);
 		
 		add(buttonsLayout);
 	}
@@ -256,6 +267,13 @@ public class UsersView extends VerticalLayout implements HasDynamicTitle, HasHea
 			listUsers = userHisService.findAll();
 		} else {
 			listUsers = userHisService.findFor(search);
+		}
+		if(listUsers.isEmpty()) {
+			importButton.setVisible(true);
+			importButton.setText("Importer "+search);
+		}else {
+			importButton.setVisible(false);
+			importButton.setText("Importer");
 		}
 		dataProvider = DataProvider.ofCollection(listUsers);
 		usersGrid.setDataProvider(dataProvider);
