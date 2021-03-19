@@ -8,6 +8,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import fr.univlorraine.publikfeed.job.NewUsersSyncJob;
 import fr.univlorraine.publikfeed.job.RolesManuelsSyncJob;
 import fr.univlorraine.publikfeed.job.RolesResponsableSyncJob;
 import fr.univlorraine.publikfeed.job.SupprRolesManuelsInactifJob;
@@ -28,6 +29,9 @@ public class CronService  implements Serializable {
 	private UsersSyncJob usersSyncJob;
 	
 	@Autowired
+	private NewUsersSyncJob newUsersSyncJob;
+	
+	@Autowired
 	private SupprUsersSyncJob supprUsersSyncJob;
 	
 	@Autowired
@@ -38,6 +42,12 @@ public class CronService  implements Serializable {
 	
 	@Autowired
 	private RolesResponsableSyncJob rolesResponsableSyncJob;
+	
+	
+	@Scheduled(cron = CronUtils.CRON_SYNC_NEW_USERS)
+	public void cronJobSyncNewUsers() {
+		newUsersSyncJob.syncUsers();
+	}
 	
 	
 	@Scheduled(cron = CronUtils.CRON_SYNC_USERS)

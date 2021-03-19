@@ -4,6 +4,7 @@ package fr.univlorraine.publikfeed.job.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import fr.univlorraine.publikfeed.job.NewUsersSyncJob;
 import fr.univlorraine.publikfeed.job.RolesManuelsSyncJob;
 import fr.univlorraine.publikfeed.job.RolesResponsableSyncJob;
 import fr.univlorraine.publikfeed.job.RolesUnitairesSupprJob;
@@ -20,6 +21,9 @@ public class JobLauncher {
 
 	@Autowired
 	private UsersSyncJob usersSyncJob;
+	
+	@Autowired
+	private NewUsersSyncJob newUsersSyncJob;
 	
 	@Autowired
 	private SupprUsersSyncJob supprUsersSyncJob;
@@ -39,6 +43,9 @@ public class JobLauncher {
 
 	public void launch(String jobName) {
 		switch(jobName) {
+			case JobUtils.SYNC_NEW_USERS_JOB : 
+				newUsersSyncJob.syncUsers();
+				break;
 			case JobUtils.SYNC_USERS_JOB : 
 				usersSyncJob.syncUsers();
 				break;

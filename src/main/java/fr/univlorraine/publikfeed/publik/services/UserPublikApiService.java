@@ -235,7 +235,7 @@ public class UserPublikApiService {
 				// On réinit la réponse
 				response = null;
 				//Si la réponse contient des users
-				if(upar != null && upar.getResults()!=null && upar.getResults().size() == 1) {
+				if(upar != null && upar.getResults()!=null && !upar.getResults().isEmpty()) {
 					listUsers.addAll(upar.getResults());
 				}
 				// Si il reste des résultats non retournés

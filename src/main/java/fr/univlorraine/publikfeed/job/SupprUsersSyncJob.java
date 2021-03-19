@@ -5,7 +5,6 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
-import org.flywaydb.core.internal.util.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -14,10 +13,8 @@ import fr.univlorraine.publikfeed.ldap.entity.PeopleLdap;
 import fr.univlorraine.publikfeed.ldap.exceptions.LdapServiceException;
 import fr.univlorraine.publikfeed.ldap.services.LdapGenericService;
 import fr.univlorraine.publikfeed.model.app.entity.ProcessHis;
-import fr.univlorraine.publikfeed.model.app.entity.UserErrHis;
 import fr.univlorraine.publikfeed.model.app.entity.UserHis;
 import fr.univlorraine.publikfeed.model.app.services.ProcessHisService;
-import fr.univlorraine.publikfeed.model.app.services.UserErrHisService;
 import fr.univlorraine.publikfeed.model.app.services.UserHisService;
 import fr.univlorraine.publikfeed.utils.JobUtils;
 import fr.univlorraine.publikfeed.utils.Utils;
@@ -61,9 +58,6 @@ public class SupprUsersSyncJob {
 
 			// Ajout timestamp du start dans la base
 			ProcessHis process = processHisService.getNewProcess(JobUtils.SYNC_SUPPR_USERS_JOB);
-
-			// récupération du dernier ProcessHis pour le job avec date de fin non null
-			ProcessHis lastExec = processHisService.getLastSuccessExc(JobUtils.SYNC_SUPPR_USERS_JOB);
 
 			// Récupération des users
 			List<UserHis> listLoginBdd = userHisService.findAllActiv();

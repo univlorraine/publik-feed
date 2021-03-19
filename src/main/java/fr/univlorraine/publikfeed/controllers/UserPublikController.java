@@ -400,27 +400,6 @@ public class UserPublikController {
 		return userPublikApiService.getUserLastModified(lastModifiedDate);
 	}
 
-	/**
-	 * Récupère les users Publik non présents en base
-	 */
-	public void syncNewUsers(LocalDateTime dateLastRun) {
-		List<UserPublikApi> listNewUsers = getLastModified(dateLastRun);
-		if(listNewUsers!=null && !listNewUsers.isEmpty()) {
-			// Pour chaque user modifié dans Publik
-			for(UserPublikApi userPublik : listNewUsers) {
-				// Si c'est un user UL
-				if(userPublik != null && userPublik.getUsername() != null && userPublik.getUsername().contains(Utils.EPPN_SUFFIX)) {
-					// Récupération du login
-					String login = userPublik.getUsername().split("@")[0];
-					// Si pas dans la base
-					if(!userHisService.find(login).isPresent()) {
-						log.info("{} présent dans Publik mais pas en base", login);
-						createOrUpdateUser(login);
-					}
-				}
-			}
-		}
-	}
 
 
 

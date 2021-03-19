@@ -70,19 +70,12 @@ public class UsersSyncJob {
 			// Date par défaut pour récupérer tous les comptes
 			String dateLdap = "20120101010003Z";
 			
-			// Par défaut j - 2 ans 
-			LocalDateTime dateLastRun = LocalDateTime.now().minusYears(2);
-			
 			// calcul de la date evenement
 			if(lastExec!=null && lastExec.getDatFin()!=null) {
 				// On prend la date de début comme date max des maj ldap ignorées
 				dateLdap = Utils.formatDateToLdap(lastExec.getId().getDatDeb());
-				dateLastRun = lastExec.getId().getDatDeb();
 			}
 			
-			//Synchro des users créés dans Publik et qu'on a pas encore dans la base (les étudiants notamment)
-			userPublikController.syncNewUsers(dateLastRun);
-
 			// Récupération des users en anomalie (user_err_his dont date supérieure à la date de derniere maj dans user_his) 
 			List<String> listLoginToRetry = userErrHisService.getUserToRetry();
 			if(listLoginToRetry!=null && !listLoginToRetry.isEmpty()) {
