@@ -68,6 +68,8 @@ public class UserPublikController {
 	public boolean createOrUpdateUser(PeopleLdap p) throws Exception {
 
 		String userUuid=null;
+		
+		boolean isNotStudent = Utils.isNotStudent(p);
 
 		// Mapper JSON
 		ObjectMapper objectMapper = new ObjectMapper();
@@ -82,8 +84,8 @@ public class UserPublikController {
 
 		// Si le user n'est pas dans la base ou si on ne l'a pas déjà traité depuis sa dernière maj ldap
 		if(!ouh.isPresent() || ouh.get().getDatMaj()==null || p.getModifyTimestamp()==null || ouh.get().getDatMaj().isBefore(Utils.getDateFromLdap(p.getModifyTimestamp()))) {
-			// Si on a aucune entrée en base
-			if(!ouh.isPresent()) {
+			// Si ce n'est pas un compte étudiant et qu'on a aucune entrée en base
+			if(isNotStudent && !ouh.isPresent()) {
 				log.info("{} non present en base", p.getUid());
 				// On regarde si il existe déjà dans publik
 				UserPublikApi userPublik = userPublikApiService.getUserByUsername(p.getEduPersonPrincipalName());
@@ -104,8 +106,8 @@ public class UserPublikController {
 				log.info("{} present en base", p.getUid());
 			}
 
-			// Si on a toujours aucune entrée en base ou qu'il est supprimé dans publik
-			if(!ouh.isPresent() || ouh.get().getDatSup()!=null) {
+			// Si ce n'est pas un compte étudiant et qu'on a toujours aucune entrée en base ou qu'il est supprimé dans publik
+			if(isNotStudent && (!ouh.isPresent() || ouh.get().getDatSup()!=null)) {
 				log.info("Le compte {} doit etre créé dans Publik",p.getUid());
 				// créer le user dans Publik
 				UserPublikApi response = userPublikApiService.createUser(userLdap);
@@ -164,7 +166,7 @@ public class UserPublikController {
 						log.info("Le compte {} a été mis a jour dans la base",p.getUid());
 					}
 				} else {
-					// inutile de pousse les infos du compte dans Publik car les attributs nécessaire a publik ne sont pas impactes
+					// inutile de pousser les infos du compte dans Publik car les attributs nécessaire a publik ne sont pas impactes
 					UserHis user = ouh.get();
 					// on maj la date dans la base pour ne pas refaire le comparatif des data au prochain run
 					user.setDatMaj(LocalDateTime.now());
