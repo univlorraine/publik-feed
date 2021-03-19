@@ -202,6 +202,11 @@ public class Utils {
 		return list;
 	}
 
+	// Retourne vrai si le compte n'est pas un compte étudiant.
+	public static boolean isNotStudent(PeopleLdap p) {
+		return !StringUtils.hasText(p.getSupannEtuId()) || StringUtils.hasText(p.getSupannEmpId());
+	}
+
 	
 
 

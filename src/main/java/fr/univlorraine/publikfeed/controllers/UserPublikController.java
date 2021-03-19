@@ -16,7 +16,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.univlorraine.publikfeed.json.entity.RoleJson;
 import fr.univlorraine.publikfeed.json.entity.UserJson;
 import fr.univlorraine.publikfeed.ldap.entity.PeopleLdap;
-import fr.univlorraine.publikfeed.ldap.exceptions.LdapServiceException;
 import fr.univlorraine.publikfeed.ldap.services.LdapGenericService;
 import fr.univlorraine.publikfeed.model.app.entity.RoleAuto;
 import fr.univlorraine.publikfeed.model.app.entity.UserHis;
@@ -188,10 +187,8 @@ public class UserPublikController {
 	public void checkRolesUnitaires(PeopleLdap p,  String userUuid) throws Exception {
 		List<String> listeRole = new LinkedList<String> ();
 
-		// Si ce n'est pas un étudiant
-		//if(StringUtils.hasText(p.getSupannEtuId()) && !StringUtils.hasText(p.getSupannEmpId())) {
-		// Si ce n'est pas un étudiant ou que c'est un doctorant
-		if(!StringUtils.hasText(p.getSupannEtuId()) || StringUtils.hasText(p.getSupannEmpId())) {	
+		// Si ce n'est pas un compte étudiant 
+		if(Utils.isNotStudent(p)) {	
 			// Traitement role unitaire nominatif
 			String roleName =  getRoleUnitairePersonnel(p.getEduPersonPrincipalName());
 			createOrUpdateRole(roleName, p.getUid(), userUuid);

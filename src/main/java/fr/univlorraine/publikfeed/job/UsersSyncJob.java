@@ -17,6 +17,7 @@ import fr.univlorraine.publikfeed.model.app.entity.ProcessHis;
 import fr.univlorraine.publikfeed.model.app.entity.UserErrHis;
 import fr.univlorraine.publikfeed.model.app.services.ProcessHisService;
 import fr.univlorraine.publikfeed.model.app.services.UserErrHisService;
+import fr.univlorraine.publikfeed.model.app.services.UserHisService;
 import fr.univlorraine.publikfeed.utils.JobUtils;
 import fr.univlorraine.publikfeed.utils.Utils;
 import lombok.extern.slf4j.Slf4j;
@@ -39,7 +40,8 @@ public class UsersSyncJob {
 	@Resource
 	private UserErrHisService userErrHisService;
 
-
+	@Resource
+	private UserHisService userHisService;
 
 	@Resource
 	private LdapGenericService<PeopleLdap> ldapPeopleService;
@@ -82,7 +84,7 @@ public class UsersSyncJob {
 
 			// Filtre ldap
 			String filtre = "(&"+filtreSyncUser+"(modifytimestamp>=" + dateLdap + "))";
-			
+
 			// Execution du filtre ldap
 			try {
 				log.info("execution du filtre ldap {} ...", filtre);
@@ -101,30 +103,33 @@ public class UsersSyncJob {
 					for(PeopleLdap p : lp) {
 						// Si la personne a un mail
 						if(p != null && StringUtils.hasText(p.getMail())) {
-							try {
-								// Création ou maj de l'utilisateur dans Publik
-								userPublikController.createOrUpdateUser(p);
+							// Si ce n'est pas un étudiant ou si il est déjà connu dans la base
+							if(Utils.isNotStudent(p) || userHisService.find(p.getUid()).isPresent()) {
+								try {
+									// Création ou maj de l'utilisateur dans Publik
+									userPublikController.createOrUpdateUser(p);
 
-								// Incrément du nombre d'objet traités
-								process.setNbObjTraite(process.getNbObjTraite() + 1);
+									// Incrément du nombre d'objet traités
+									process.setNbObjTraite(process.getNbObjTraite() + 1);
 
-								// sauvegarde du nombre d'objets traites dans la base
-								process = processHisService.update(process);
+									// sauvegarde du nombre d'objets traites dans la base
+									process = processHisService.update(process);
 
-							}catch (Exception e) {
-								log.warn("Exception lors du traitement du user",e);
-								// Incrément du nombre d'objet traités
-								process.setNbObjTraite(process.getNbObjTraite() + 1);
-								// Incrément du compteur d'erreur
-								process.setNbObjErreur(process.getNbObjErreur() + 1);
-								// sauvegarde du nombre d'objets traites dans la base
-								process = processHisService.update(process);
+								}catch (Exception e) {
+									log.warn("Exception lors du traitement du user",e);
+									// Incrément du nombre d'objet traités
+									process.setNbObjTraite(process.getNbObjTraite() + 1);
+									// Incrément du compteur d'erreur
+									process.setNbObjErreur(process.getNbObjErreur() + 1);
+									// sauvegarde du nombre d'objets traites dans la base
+									process = processHisService.update(process);
 
-								//sauvegarde de l'erreur dans la base
-								UserErrHis erreur = new UserErrHis();
-								erreur.setLogin(p.getUid());
-								erreur.setTrace(e.getMessage());
-								erreur = userErrHisService.save(erreur);
+									//sauvegarde de l'erreur dans la base
+									UserErrHis erreur = new UserErrHis();
+									erreur.setLogin(p.getUid());
+									erreur.setTrace(e.getMessage());
+									erreur = userErrHisService.save(erreur);
+								}
 							}
 						}
 
