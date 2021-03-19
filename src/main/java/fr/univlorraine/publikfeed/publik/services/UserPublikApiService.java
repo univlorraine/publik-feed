@@ -1,6 +1,9 @@
 package fr.univlorraine.publikfeed.publik.services;
 
+import java.net.URI;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -9,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.support.BasicAuthenticationInterceptor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -196,6 +200,60 @@ public class UserPublikApiService {
 			return true;
 		}
 		return false;
+	}
+
+
+
+	public List<UserPublikApi> getUserLastModified(String modifiedDate) {
+		List<UserPublikApi> listUsers = new LinkedList<UserPublikApi> ();
+		log.info("getUserLastModified :  {}", modifiedDate );
+		// On récupère l'URL de l'api
+		String purl = apiUrl + USERS;
+		purl += "?modified__gte={modifiedDate}";
+
+		//Body
+		Map<String,String> params = new HashMap<String,String>();
+		params.put("modifiedDate", modifiedDate);
+
+
+		RestTemplate rt = new RestTemplate();
+
+		log.info("call url : " + purl + " modifiedDate=>" + modifiedDate);
+
+		rt.getInterceptors().add(new BasicAuthenticationInterceptor(apiUsername, apiPassword));
+		//Appelle du WS qui retourne le user publik
+		ResponseEntity<String> response = rt.exchange(purl, HttpMethod.GET, Utils.createRequest(null), String.class, params);
+
+		log.info("Publik Response :" + response);
+
+		//Si on a eu une réponse
+		while (response != null && response.getBody()!=null) {
+			ObjectMapper objectMapper = new ObjectMapper();
+			UserResponsePublikApi upar;
+			try {
+				upar = objectMapper.readValue(response.getBody(), UserResponsePublikApi.class);
+				// On réinit la réponse
+				response = null;
+				//Si la réponse contient des users
+				if(upar != null && upar.getResults()!=null && upar.getResults().size() == 1) {
+					listUsers.addAll(upar.getResults());
+				}
+				// Si il reste des résultats non retournés
+				if(upar!=null && StringUtils.hasText(upar.getNext())) {
+					// On récupère la suite
+					log.info("Récupération du résultat suivant (next) : {}", upar.getNext());
+					try {
+						response = rt.getForEntity(new URI(upar.getNext()), String.class);
+					} catch (Exception e) {
+						log.error("Erreur lors du traitement du resultat next de getUserLastModified pour " + upar.getNext(), e);
+					} 
+				}
+			} catch (Exception e) {
+				log.warn("Erreur lors du traitement du resultat de getUserLastModified pour " + modifiedDate, e);
+			} 
+		}
+		return listUsers;
+
 	}
 
 

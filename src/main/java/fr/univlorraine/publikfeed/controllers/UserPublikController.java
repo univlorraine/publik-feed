@@ -47,12 +47,12 @@ public class UserPublikController {
 
 	@Resource
 	private RolePublikApiService rolePublikApiService;
-	
+
 
 	@Resource
 	private LdapGenericService<PeopleLdap> ldapPeopleService;
 
-	
+
 	public boolean createOrUpdateUser(String login) {
 		try {
 			PeopleLdap p = ldapPeopleService.findByPrimaryKey(login);
@@ -64,12 +64,10 @@ public class UserPublikController {
 		}
 		return false;
 	} 
-	
+
 	public boolean createOrUpdateUser(PeopleLdap p) throws Exception {
 
 		String userUuid=null;
-		
-		boolean isNotStudent = Utils.isNotStudent(p);
 
 		// Mapper JSON
 		ObjectMapper objectMapper = new ObjectMapper();
@@ -84,8 +82,8 @@ public class UserPublikController {
 
 		// Si le user n'est pas dans la base ou si on ne l'a pas déjà traité depuis sa dernière maj ldap
 		if(!ouh.isPresent() || ouh.get().getDatMaj()==null || p.getModifyTimestamp()==null || ouh.get().getDatMaj().isBefore(Utils.getDateFromLdap(p.getModifyTimestamp()))) {
-			// Si ce n'est pas un compte étudiant et qu'on a aucune entrée en base
-			if(isNotStudent && !ouh.isPresent()) {
+			// Si on a aucune entrée en base
+			if(!ouh.isPresent()) {
 				log.info("{} non present en base", p.getUid());
 				// On regarde si il existe déjà dans publik
 				UserPublikApi userPublik = userPublikApiService.getUserByUsername(p.getEduPersonPrincipalName());
@@ -106,8 +104,8 @@ public class UserPublikController {
 				log.info("{} present en base", p.getUid());
 			}
 
-			// Si ce n'est pas un compte étudiant et qu'on a toujours aucune entrée en base ou qu'il est supprimé dans publik
-			if(isNotStudent && (!ouh.isPresent() || ouh.get().getDatSup()!=null)) {
+			// Si on a toujours aucune entrée en base ou qu'il est supprimé dans publik
+			if(!ouh.isPresent() || ouh.get().getDatSup()!=null) {
 				log.info("Le compte {} doit etre créé dans Publik",p.getUid());
 				// créer le user dans Publik
 				UserPublikApi response = userPublikApiService.createUser(userLdap);
@@ -178,7 +176,7 @@ public class UserPublikController {
 
 			// Vérification des roles nominatifs
 			checkRolesUnitaires(p, userUuid);
-			
+
 		} else {
 			log.info("{} dateMaj superieure au modifytimestamp. Compte non traite", p.getUid());
 		}
@@ -355,7 +353,7 @@ public class UserPublikController {
 							UserRole userRoleEppnBdd = roleAutoService.saveUserRole(roleEppn.get());
 
 							log.info("Date suppr du lien User - Role : {} - {} mis a jour dans la base",userRoleEppnBdd.getId().getLogin(), userRoleEppnBdd.getId().getRoleId());
-							
+
 							// Maj bdd du role
 							roleAuto.get().setDatMaj(LocalDateTime.now());
 							roleAuto.get().setDatSup(LocalDateTime.now());
@@ -364,10 +362,10 @@ public class UserPublikController {
 							log.info("Date suppr du Role {} mis a jour dans la base", roleEppnBdd.getDatSup());
 
 						}
-						
+
 					}
 				}
-				
+
 				// suppression dans la base de tous les roles associés à la personne (fait automatiquement dans publik lors de la suppr de la personne)
 				List<UserRole> listRole = roleAutoService.findRolesFromLogin(user.getLogin());
 				if(listRole != null && !listRole.isEmpty()) {
@@ -376,11 +374,11 @@ public class UserPublikController {
 							ur.setDatSup(LocalDateTime.now());
 							ur = roleAutoService.saveUserRole(ur);
 							log.info("Date suppr du lien User - Role : {} - {} mis a jour dans la base", ur.getId().getLogin(), ur.getId().getRoleId());
-							
+
 						}
 					}
 				}
-				
+
 				// TODO Probleme des roles qui se retrouvent potentiellement vide?
 
 				// maj des roles de la personne dans la base de données
@@ -395,6 +393,33 @@ public class UserPublikController {
 
 	private String getRoleUnitairePersonnel(String eppn) {
 		return Utils.PREFIX_ROLE_UNITAIRE + Utils.PREFIX_ROLE_NOMINATIF + eppn;
+	}
+
+	public List<UserPublikApi> getLastModified(LocalDateTime dateLastRun) {
+		String lastModifiedDate = Utils.formatDateForPublik(dateLastRun);
+		return userPublikApiService.getUserLastModified(lastModifiedDate);
+	}
+
+	/**
+	 * Récupère les users Publik non présents en base
+	 */
+	public void syncNewUsers(LocalDateTime dateLastRun) {
+		List<UserPublikApi> listNewUsers = getLastModified(dateLastRun);
+		if(listNewUsers!=null && !listNewUsers.isEmpty()) {
+			// Pour chaque user modifié dans Publik
+			for(UserPublikApi userPublik : listNewUsers) {
+				// Si c'est un user UL
+				if(userPublik != null && userPublik.getUsername() != null && userPublik.getUsername().contains(Utils.EPPN_SUFFIX)) {
+					// Récupération du login
+					String login = userPublik.getUsername().split("@")[0];
+					// Si pas dans la base
+					if(!userHisService.find(login).isPresent()) {
+						log.info("{} présent dans Publik mais pas en base", login);
+						createOrUpdateUser(login);
+					}
+				}
+			}
+		}
 	}
 
 

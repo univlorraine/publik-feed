@@ -102,6 +102,20 @@ public class Utils {
 		log.info("{} -> {}", originalDateTime, resultDateTime);
 		return resultDateTime;
 	}
+	
+	public static String formatDateForPublik(LocalDateTime date) {
+		if (date == null) {
+			return null;
+		}
+		DateFormat gmtFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		TimeZone gmtTime = TimeZone.getTimeZone("GMT");
+		gmtFormat.setTimeZone(gmtTime);
+		String resultDateTime = gmtFormat.format(java.sql.Timestamp.valueOf(date));
+		resultDateTime= resultDateTime.replaceFirst(" ", "T");
+		log.info("{} -> {}", date, resultDateTime);
+		return resultDateTime;
+	}
+
 
 	public static UserJson getUserJson(UserHis user) {
 		if(user != null && StringUtils.hasText(user.getData())) {
@@ -206,6 +220,7 @@ public class Utils {
 	public static boolean isNotStudent(PeopleLdap p) {
 		return !StringUtils.hasText(p.getSupannEtuId()) || StringUtils.hasText(p.getSupannEmpId());
 	}
+
 
 	
 
