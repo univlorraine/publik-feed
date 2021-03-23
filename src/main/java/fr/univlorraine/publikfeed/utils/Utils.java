@@ -55,6 +55,8 @@ public class Utils {
 	
 	public static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).localizedBy(Locale.FRANCE);
 
+	public static final CharSequence ANOMALIE_PUBLIK_MAIL = "courriel est invalide";
+
 
 
 	

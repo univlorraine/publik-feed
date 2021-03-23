@@ -35,6 +35,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class UserPublikController {
 
+	@Resource
+	private ErrorController errorController;
 
 	@Resource
 	private UserHisService userHisService;
@@ -57,10 +59,16 @@ public class UserPublikController {
 		try {
 			PeopleLdap p = ldapPeopleService.findByPrimaryKey(login);
 			if(p!=null) {
-				return createOrUpdateUser(p);
+				try {
+					return createOrUpdateUser(p);
+				} catch (Exception e) {
+					log.warn("Une exception est survenue pendant la création de " + login + " dans Publik",e);
+					// gestion de l'erreur
+					errorController.check(e, p);
+				}
 			}
 		} catch (Exception e) {
-			log.warn("Une exception est survenue pendant la création de "+login + " dans Publik",e);
+			log.warn("Une exception est survenue pendant le createOrUpdateUser de "+login,e);
 		}
 		return false;
 	} 
@@ -201,7 +209,7 @@ public class UserPublikController {
 			createOrUpdateRole(roleEmpName, p.getUid(), userUuid);
 			listeRole.add(roleEmpName);
 		}
-		
+
 		// Si pas un compte étudiant et pas de supannEmpId (IN ou Partenaire)
 		if(Utils.isNotStudent(p) && !StringUtils.hasText(p.getSupannEmpId())) {
 			String roleEmpName = Utils.PREFIX_ROLE_UNITAIRE + Utils.PREFIX_ROLE_AUTRES;

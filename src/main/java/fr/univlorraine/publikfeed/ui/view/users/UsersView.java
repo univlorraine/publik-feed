@@ -36,8 +36,6 @@ import com.vaadin.flow.router.Route;
 
 import fr.univlorraine.publikfeed.controllers.UserPublikController;
 import fr.univlorraine.publikfeed.job.services.JobLauncher;
-import fr.univlorraine.publikfeed.ldap.entity.PeopleLdap;
-import fr.univlorraine.publikfeed.ldap.services.LdapGenericService;
 import fr.univlorraine.publikfeed.model.app.entity.UserHis;
 import fr.univlorraine.publikfeed.model.app.entity.UserRole;
 import fr.univlorraine.publikfeed.model.app.services.RoleAutoService;

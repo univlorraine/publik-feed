@@ -10,6 +10,7 @@ import org.flywaydb.core.internal.util.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import fr.univlorraine.publikfeed.controllers.ErrorController;
 import fr.univlorraine.publikfeed.controllers.UserPublikController;
 import fr.univlorraine.publikfeed.ldap.entity.PeopleLdap;
 import fr.univlorraine.publikfeed.ldap.exceptions.LdapServiceException;
@@ -34,6 +35,9 @@ public class UsersSyncJob {
 
 	@Resource
 	private UserPublikController userPublikController;
+	
+	@Resource
+	private ErrorController errorController;
 
 	@Resource
 	private ProcessHisService processHisService;
@@ -125,12 +129,8 @@ public class UsersSyncJob {
 									process.setNbObjErreur(process.getNbObjErreur() + 1);
 									// sauvegarde du nombre d'objets traites dans la base
 									process = processHisService.update(process);
-
-									//sauvegarde de l'erreur dans la base
-									UserErrHis erreur = new UserErrHis();
-									erreur.setLogin(p.getUid());
-									erreur.setTrace(e.getMessage());
-									erreur = userErrHisService.save(erreur);
+									// gestion de l'erreur
+									errorController.check(e, p);
 								}
 							}
 						}
