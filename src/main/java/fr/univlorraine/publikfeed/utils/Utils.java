@@ -40,6 +40,8 @@ public class Utils {
 	public static final String PREFIX_ROLE_PERSONNEL = "EMP";
 
 	public static final String PREFIX_ROLE_ETUDIANT = "ETU";
+	
+	public static final String PREFIX_ROLE_AUTRES = "AUTRES";
 
 	public static final String ROLE_SEPARATOR = "_";
 
@@ -52,6 +54,8 @@ public class Utils {
 	public static final String EPPN_SUFFIX = "@univ-lorraine.fr";
 	
 	public static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).localizedBy(Locale.FRANCE);
+
+
 
 	
 

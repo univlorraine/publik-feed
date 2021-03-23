@@ -201,6 +201,13 @@ public class UserPublikController {
 			createOrUpdateRole(roleEmpName, p.getUid(), userUuid);
 			listeRole.add(roleEmpName);
 		}
+		
+		// Si pas un compte étudiant et pas de supannEmpId (IN ou Partenaire)
+		if(Utils.isNotStudent(p) && !StringUtils.hasText(p.getSupannEmpId())) {
+			String roleEmpName = Utils.PREFIX_ROLE_UNITAIRE + Utils.PREFIX_ROLE_AUTRES;
+			createOrUpdateRole(roleEmpName, p.getUid(), userUuid);
+			listeRole.add(roleEmpName);
+		}
 
 		// Role Etu UL
 		if(StringUtils.hasText(p.getSupannEtuId())) {
