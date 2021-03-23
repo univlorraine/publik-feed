@@ -52,7 +52,7 @@ public class UserErrHisService implements Serializable {
 	}
 
 	public List<UserErrHis> findFor(String search) {
-		return userErrHisRepository.findByLoginContainingIgnoreCaseOrTraceContainingIgnoreCase(search, search);
+		return userErrHisRepository.findByLoginContainingIgnoreCaseOrTraceContainingIgnoreCaseOrderByDatErrDesc(search, search);
 	}
 	
 	

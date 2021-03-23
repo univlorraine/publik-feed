@@ -22,6 +22,6 @@ public interface UserErrHisRepository extends JpaSpecificationExecutor<UserErrHi
 
 	public List<UserErrHis> findAllByOrderByDatErrDesc();
 
-	public List<UserErrHis> findByLoginContainingIgnoreCaseOrTraceContainingIgnoreCase(String search, String search2);
+	public List<UserErrHis> findByLoginContainingIgnoreCaseOrTraceContainingIgnoreCaseOrderByDatErrDesc(String search, String search2);
 
 }
