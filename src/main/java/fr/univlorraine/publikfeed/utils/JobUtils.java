@@ -44,7 +44,7 @@ public final class JobUtils {
 		jobList.add(JobUtils.SYNC_RESP_ROLE_JOB);
 		jobList.add(JobUtils.SYNC_ROLES_MANUELS_JOB);
 		jobList.add(JobUtils.SUPPR_ROLES_MANUELS_INACTIFS);
-		jobList.add(JobUtils.SUPPR_ROLES_UNITAIRES_JOB);
+		//jobList.add(JobUtils.SUPPR_ROLES_UNITAIRES_JOB);
 	}
 
 
