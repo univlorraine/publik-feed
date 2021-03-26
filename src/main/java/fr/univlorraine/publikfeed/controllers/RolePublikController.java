@@ -94,7 +94,7 @@ public class RolePublikController {
 		} 
 		return isDeleted;
 	}
-	
+
 	/**
 	 * supprime le role dans publik et maj la bdd avec la date de suppression
 	 * @param role
@@ -184,8 +184,8 @@ public class RolePublikController {
 
 		log.info("Hash du role {} : {}", role.getId(), hash);
 
-		// Si le role n'est pas dans Publik
-		if(role.getDatCrePublik()==null) {
+		// Si le role n'est pas dans Publik et que le rôle possede des users
+		if(role.getDatCrePublik()==null && !uuids.isEmpty()) {
 			log.info("Role {} est nouveau. Il doit etre cree dans Publik", role.getId());
 			RoleJson rj = new RoleJson();
 			rj.setName(Utils.PREFIX_ROLE_MANUEL + role.getId().toUpperCase());
@@ -207,26 +207,32 @@ public class RolePublikController {
 
 		}
 
+		// Si le rôle est dans Publik et qu'il n'a aucun user
+		if(role.getUuid()!=null && role.getDatCrePublik()!=null && role.getDatSupPublik()==null && uuids.isEmpty()) {
+			log.info("Role {} sans user => On le supprime automatiquement de Publik", role.getId());
+			//suppression du rôle dans Publik
+			deleteRoleInPublik(role);
+		}else {
+			// Si nouveau role ou si le hash est different
+			if(newRole || (role.getHash()==null && hash!=null) || (role.getHash()!=null && hash==null) || !role.getHash().equals(hash)) {
 
-		// Si nouvau role ou si le hash est different
-		if(newRole || (role.getHash()==null && hash!=null) || (role.getHash()!=null && hash==null) || !role.getHash().equals(hash)) {
+				log.info("La population du role {} doit être mise à jour dans Publik", role.getId());
+				// Ajout/maj des personnes dans publik
+				AddUserToRoleResponsePublikApi response = rolePublikApiService.setUsersToRole(role.getUuid(), data);
 
-			log.info("La population du role {} doit être mise à jour dans Publik", role.getId());
-			// Ajout/maj des personnes dans publik
-			AddUserToRoleResponsePublikApi response = rolePublikApiService.setUsersToRole(role.getUuid(), data);
+				log.info("Users Role {} ont été mis à jour dans Publik : ", role.getId());
 
-			log.info("Users Role {} ont été mis à jour dans Publik : ", role.getId());
-
-			// Si l'appel à l'API Publik s'est bien passé
-			if(response!=null && response.getResult()==1) {
-				// Maj de la date et du hash dans la base
-				role.setDatMajPublik(LocalDateTime.now());
-				role.setHash(hash);
-				role = roleManuelService.saveRole(role);
-				log.info("Hash du Role {} sauvegardé dans la base : ", role.getId(), role.getHash());
+				// Si l'appel à l'API Publik s'est bien passé
+				if(response!=null && response.getResult()==1) {
+					// Maj de la date et du hash dans la base
+					role.setDatMajPublik(LocalDateTime.now());
+					role.setHash(hash);
+					role = roleManuelService.saveRole(role);
+					log.info("Hash du Role {} sauvegardé dans la base : ", role.getId(), role.getHash());
+				}
+			} else {
+				log.info("La population du role {} est déjà à jour dans Publik", role.getId());
 			}
-		} else {
-			log.info("La population du role {} est déjà à jour dans Publik", role.getId());
 		}
 	}
 
@@ -325,7 +331,7 @@ public class RolePublikController {
 		} else {
 			log.info("La population du role {} est déjà à jour dans Publik", r.getCodStr());
 		}
-		
+
 		// Si le rôle est vide et qu'il est toujours présent dans Publik
 		if(r.getDatCrePublik()!=null && uuids.isEmpty() && r.getDatSupPublik()==null) {
 			log.info("Suppression roleResp {} dans publik ", r.getCodStr());
