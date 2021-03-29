@@ -17,12 +17,13 @@
 	</parent>
 
 	<properties>
-		<revision>1.0.0</revision>
+		<revision>1.5.0</revision>
 		<sha1></sha1>
 		<changelist>-SNAPSHOT</changelist>
 
 		<java.version>11</java.version>
-		<vaadin.version>14.4.10</vaadin.version>
+		<vaadin.version>14.5.1</vaadin.version>
+		<!-- <vaadin.version>14.4.10</vaadin.version>  -->
 		<!-- <vaadin.version>14.2.0</vaadin.version>  -->
 	</properties>
 
