@@ -221,6 +221,7 @@ public class RolesResponsableSyncJob {
 								process.setNbObjErreur(process.getNbObjErreur() + 1);
 								// sauvegarde du nombre d'objets traites dans la base
 								process = processHisService.update(process);
+								log.error("Erreur lors de la sync du roleResp de la str "+structure.getKey(), e);
 
 							}
 						}
