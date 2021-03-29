@@ -239,7 +239,8 @@ public class RolePublikController {
 
 
 	public void syncRoleResp(Entry<String, List<String>> structure, String libelle) {
-
+		System.out.println("SyncRoleResp : " + structure.getKey() + " - " + libelle);
+		
 		Optional<RoleResp> role = roleRespService.findRole(structure.getKey());
 		RoleResp r = null;
 		// Si le role n'était pas déjà dans la base
@@ -261,6 +262,7 @@ public class RolePublikController {
 		}
 		r.setDatMaj(LocalDateTime.now());
 		// Maj des logins dans la base
+		System.out.println("--- save roleResp : " + r);
 		r = roleRespService.saveRole(r);
 
 		// calcul de la liste des uuids des resp
