@@ -67,8 +67,8 @@ public class NewUsersSyncJob {
 			// récupération du dernier ProcessHis pour le job avec date de fin non null
 			ProcessHis lastExec = processHisService.getLastSuccessExc(JobUtils.SYNC_NEW_USERS_JOB);
 
-			// Par défaut j - 2 ans 
-			LocalDateTime dateLastRun = LocalDateTime.now().minusYears(2);
+			// Par défaut j - 6 mois
+			LocalDateTime dateLastRun = LocalDateTime.now().minusMonths(6);
 
 			// calcul de la date evenement
 			if(lastExec!=null && lastExec.getDatFin()!=null) {
