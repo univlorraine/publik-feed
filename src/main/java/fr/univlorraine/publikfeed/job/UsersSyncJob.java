@@ -86,6 +86,9 @@ public class UsersSyncJob {
 				process.setNbObjTotal(listLoginToRetry.size());
 				// sauvegarde du nombre d'objets à traiter dans la base
 				process = processHisService.update(process);
+				log.info("{} comptes en anomalie a repasser", listLoginToRetry.size());
+			} else {
+				log.info("aucun compte en anomalie");
 			}
 
 			// Filtre ldap
