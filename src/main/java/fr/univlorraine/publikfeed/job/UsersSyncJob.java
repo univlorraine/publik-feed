@@ -135,6 +135,13 @@ public class UsersSyncJob {
 									// gestion de l'erreur
 									errorController.check(e, p);
 								}
+							} else {
+								// Ne pas traiter le compte 
+								// Incrément du nombre d'objet traités
+								process.setNbObjTraite(process.getNbObjTraite() + 1);
+
+								// sauvegarde du nombre d'objets traites dans la base
+								process = processHisService.update(process);
 							}
 						}
 
