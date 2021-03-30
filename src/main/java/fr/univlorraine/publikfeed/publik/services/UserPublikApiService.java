@@ -39,6 +39,12 @@ public class UserPublikApiService {
 
 	@Value("${publik.api.baseurl}")
 	private transient String apiUrl;
+	
+	@Value("${publik.api.gravitee.header}")
+	private transient String graviteeHeader;
+	
+	@Value("${publik.api.gravitee.apikey}")
+	private transient String graviteeKey;
 
 
 	/**
@@ -63,7 +69,7 @@ public class UserPublikApiService {
 
 		rt.getInterceptors().add(new BasicAuthenticationInterceptor(apiUsername, apiPassword));
 		//Appelle du WS qui retourne le user publik
-		ResponseEntity<String> response = rt.exchange(purl, HttpMethod.GET, Utils.createRequest(null), String.class, params);
+		ResponseEntity<String> response = rt.exchange(purl, HttpMethod.GET, Utils.createRequest(null, graviteeHeader, graviteeKey), String.class, params);
 
 		log.info("Publik Response :" + response);
 
@@ -111,7 +117,7 @@ public class UserPublikApiService {
 		//Appelle du WS qui créé le user Publik
 		@SuppressWarnings("unchecked")
 		//ResponseEntity<String> response =  (ResponseEntity<String>) rt.postForObject(purl, createRequestFromObject(user),ResponseEntity.class);
-		ResponseEntity<String> response = rt.exchange(purl, HttpMethod.POST, Utils.createRequest(user), String.class, params);
+		ResponseEntity<String> response = rt.exchange(purl, HttpMethod.POST, Utils.createRequest(user, graviteeHeader, graviteeKey), String.class, params);
 
 		log.info("Publik Response :" + response);
 
@@ -153,7 +159,7 @@ public class UserPublikApiService {
 
 		rt.getInterceptors().add(new BasicAuthenticationInterceptor(apiUsername, apiPassword));
 		//Appelle du WS qui retourne le user publik
-		ResponseEntity<String> response = rt.exchange(purl, HttpMethod.PUT, Utils.createRequest(user), String.class, params);
+		ResponseEntity<String> response = rt.exchange(purl, HttpMethod.PUT, Utils.createRequest(user, graviteeHeader, graviteeKey), String.class, params);
 
 		log.info("Publik Response :" + response);
 
@@ -222,7 +228,7 @@ public class UserPublikApiService {
 
 		rt.getInterceptors().add(new BasicAuthenticationInterceptor(apiUsername, apiPassword));
 		//Appelle du WS qui retourne le user publik
-		ResponseEntity<String> response = rt.exchange(purl, HttpMethod.GET, Utils.createRequest(null), String.class, params);
+		ResponseEntity<String> response = rt.exchange(purl, HttpMethod.GET, Utils.createRequest(null, graviteeHeader, graviteeKey), String.class, params);
 
 		log.info("Publik Response :" + response);
 

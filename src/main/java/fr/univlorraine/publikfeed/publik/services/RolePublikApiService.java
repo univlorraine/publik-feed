@@ -10,7 +10,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.support.BasicAuthenticationInterceptor;
 import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -39,6 +38,12 @@ public class RolePublikApiService {
 
 	@Value("${publik.api.baseurl}")
 	private transient String apiUrl;
+	
+	@Value("${publik.api.gravitee.header}")
+	private transient String graviteeHeader;
+	
+	@Value("${publik.api.gravitee.apikey}")
+	private transient String graviteeKey;
 
 
 
@@ -68,7 +73,7 @@ public class RolePublikApiService {
 
 		//Appelle du WS qui créé le role Publik
 		@SuppressWarnings("unchecked")
-		ResponseEntity<String> response = rt.exchange(url, HttpMethod.GET, Utils.createRequest(null), String.class, params);
+		ResponseEntity<String> response = rt.exchange(url, HttpMethod.GET, Utils.createRequest(null, graviteeHeader, graviteeKey), String.class, params);
 
 		log.info("Publik Response :" + response);
 
@@ -111,7 +116,7 @@ public class RolePublikApiService {
 
 		//Appelle du WS qui créé le role Publik
 		@SuppressWarnings("unchecked")
-		ResponseEntity<String> response = rt.exchange(purl, HttpMethod.POST, Utils.createRequest(role), String.class, params);
+		ResponseEntity<String> response = rt.exchange(purl, HttpMethod.POST, Utils.createRequest(role, graviteeHeader, graviteeKey), String.class, params);
 
 		log.info("Publik Response :" + response);
 
@@ -157,7 +162,7 @@ public class RolePublikApiService {
 
 		//Appelle du WS qui créé le role Publik
 		@SuppressWarnings("unchecked")
-		ResponseEntity<String> response = rt.exchange(purl, HttpMethod.POST, Utils.createRequest(null), String.class, params);
+		ResponseEntity<String> response = rt.exchange(purl, HttpMethod.POST, Utils.createRequest(null, graviteeHeader, graviteeKey), String.class, params);
 
 		log.info("Publik Response :" + response);
 
@@ -202,7 +207,7 @@ public class RolePublikApiService {
 
 		//Appelle du WS qui créé le role Publik
 		@SuppressWarnings("unchecked")
-		ResponseEntity<String> response = rt.exchange(purl, HttpMethod.PUT, Utils.createRequest(users), String.class, params);
+		ResponseEntity<String> response = rt.exchange(purl, HttpMethod.PUT, Utils.createRequest(users, graviteeHeader, graviteeKey), String.class, params);
 
 		log.info("Publik Response :" + response);
 
@@ -244,7 +249,7 @@ public class RolePublikApiService {
 
 		//Appelle du WS qui créé le role Publik
 		@SuppressWarnings("unchecked")
-		ResponseEntity<String> response = rt.exchange(url, HttpMethod.DELETE, Utils.createRequest(null), String.class, params);
+		ResponseEntity<String> response = rt.exchange(url, HttpMethod.DELETE, Utils.createRequest(null, graviteeHeader, graviteeKey), String.class, params);
 
 		log.info("Publik Response " + response.getStatusCode() +" :" + response);
 
@@ -280,7 +285,7 @@ public class RolePublikApiService {
 
 		//Appelle du WS qui créé le role Publik
 		@SuppressWarnings("unchecked")
-		ResponseEntity<String> response = rt.exchange(url, HttpMethod.DELETE, Utils.createRequest(null), String.class, params);
+		ResponseEntity<String> response = rt.exchange(url, HttpMethod.DELETE, Utils.createRequest(null, graviteeHeader, graviteeKey), String.class, params);
 
 		log.info("Publik Response " + response.getStatusCode() +" :" + response);
 

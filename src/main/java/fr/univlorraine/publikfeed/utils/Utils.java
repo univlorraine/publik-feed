@@ -162,9 +162,14 @@ public class Utils {
 	}
 
 
-	public static HttpEntity createRequest(Object body) {
+	public static HttpEntity createRequest(Object body, String apiHeader, String apiKey) {
 		// Headers
 		HttpHeaders requestHeaders = createHeaders(MediaType.APPLICATION_JSON.toString());
+		
+		// Ajout ApiKey si nécessaire
+		if(StringUtils.hasText(apiHeader) && StringUtils.hasText(apiKey)) {
+			requestHeaders.add(apiHeader, apiKey);
+		}
 
 		// Request
 		if(body ==null) {
