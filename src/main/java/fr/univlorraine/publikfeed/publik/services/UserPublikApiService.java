@@ -196,7 +196,7 @@ public class UserPublikApiService {
 
 		rt.getInterceptors().add(new BasicAuthenticationInterceptor(apiUsername, apiPassword));
 		//Appelle du WS qui retourne le user publik
-		ResponseEntity<String> response = rt.exchange(purl, HttpMethod.DELETE,null, String.class, params);
+		ResponseEntity<String> response = rt.exchange(purl, HttpMethod.DELETE,Utils.createRequest(null, graviteeHeader, graviteeKey), String.class, params);
 
 		log.info("Publik Response :" + response);
 
