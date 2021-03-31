@@ -55,7 +55,7 @@ public class UserPublikApiService {
 	public UserPublikApi getUserByUsername(String username) {
 		log.info("getUserByUsername :  {}", username );
 		// On récupère l'URL de l'api
-		String purl = apiUrl + USERS;
+		String purl = apiUrl + USERS + "/";
 		purl += "?username={username}";
 
 		//Body
@@ -214,7 +214,7 @@ public class UserPublikApiService {
 		List<UserPublikApi> listUsers = new LinkedList<UserPublikApi> ();
 		log.info("getUserLastModified :  {}", modifiedDate );
 		// On récupère l'URL de l'api
-		String purl = apiUrl + USERS;
+		String purl = apiUrl + USERS + "/";
 		purl += "?modified__gte={modifiedDate}";
 
 		//Body
