@@ -51,7 +51,7 @@ public class UserPublikApiService {
 	public UserPublikApi getUserByUuid(String uuid) {
 		log.info("getUserByUuid :  {}", uuid );
 		// On récupère l'URL de l'api
-		String purl = apiUrl + USERS + "/{uuid}";
+		String purl = apiUrl + USERS + "/{uuid}/";
 
 		//Body
 		Map<String,String> params = new HashMap<String,String>();
