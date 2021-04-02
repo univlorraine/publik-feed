@@ -345,8 +345,10 @@ public class UserPublikController {
 
 		// Si on a l'uuid publik 
 		if(StringUtils.hasText(user.getUuid()) ) {
-			// Suppression du user dans publik
-			if(userPublikApiService.deleteUser(user.getUuid())) {
+			UserPublikApi  userPublik = userPublikApiService.getUserByUuid(user.getUuid());
+			
+			// Si le user n'est plus dans publik ou si la suppression du user dans publik s'est bien passée
+			if(userPublik == null || userPublikApiService.deleteUser(user.getUuid())) {
 
 				// récupération de l'uuid du role spécifique à la personne
 				String roleEppnId = getRoleUnitairePersonnel(user.getLogin() + Utils.EPPN_SUFFIX);

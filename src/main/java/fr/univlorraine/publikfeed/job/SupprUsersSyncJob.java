@@ -92,10 +92,11 @@ public class SupprUsersSyncJob {
 								userPublikController.suppressionUser(u);
 							}
 							process.setNbObjTraite(process.getNbObjTraite() + 1);
+							
+							// sauvegarde du nombre d'objets traites dans la base
+							process = processHisService.update(process);
 
 						}
-						// sauvegarde du nombre d'objets traites dans la base
-						process = processHisService.update(process);
 					}
 
 				} catch (LdapServiceException e) {
