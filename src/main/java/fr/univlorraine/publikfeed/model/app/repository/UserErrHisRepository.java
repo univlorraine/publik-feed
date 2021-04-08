@@ -16,7 +16,7 @@ public interface UserErrHisRepository extends JpaSpecificationExecutor<UserErrHi
 
 	List<UserErrHis> findAllByLogin(String login);
 
-	@Query(value = "select user_err_his.login from user_err_his where user_err_his.trace NOT LIKE '%adresse de courriel est invalide%' and not exists (select login from user_his where user_his.login = user_err_his.login and user_his.dat_maj > user_err_his.dat_err) ", 
+	@Query(value = "select distinct user_err_his.login from user_err_his where user_err_his.trace NOT LIKE '%adresse de courriel est invalide%' and not exists (select login from user_his where user_his.login = user_err_his.login and user_his.dat_maj > user_err_his.dat_err) ", 
 		nativeQuery = true)	
 	List<String> getLoginToRetry();
 
