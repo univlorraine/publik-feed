@@ -73,7 +73,9 @@ public class CheckUsersAnomalieJob {
 							
 							//Si le user récupéré est null ou ne colle pas avec le user en base
 							if(userPublik== null || userPublik.getUsername()==null || !userPublik.getUsername().equals(user.getLogin()+Utils.EPPN_SUFFIX) ) {
-								log.warn("### USER : {} en anomalie", user.getLogin());
+								System.out.println("### CHECK_USERS_ANOMALIES_JOB - USER : " + user.getLogin() + "en anomalie");
+								// Incrément du nombre d'objet traités
+								process.setNbObjErreur(process.getNbObjErreur() + 1);
 							}
 
 						}
@@ -83,6 +85,7 @@ public class CheckUsersAnomalieJob {
 						// sauvegarde du nombre d'objets traites dans la base
 						process = processHisService.update(process);
 					} catch (Exception e) {
+						System.out.println("### CHECK_USERS_ANOMALIES_JOB - USER : " + user.getLogin() + "en anomalie");
 						log.warn("### USER : {} en anomalie (exception)", user.getLogin());
 
 						// Incrément du nombre d'objet traités
