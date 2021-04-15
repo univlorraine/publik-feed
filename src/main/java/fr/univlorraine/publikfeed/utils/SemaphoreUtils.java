@@ -12,6 +12,9 @@ public class SemaphoreUtils {
 	public static final Semaphore syncUserJob = new Semaphore(1);
 	
 	/** Sémaphore pour le job de sync de users */
+	public static final Semaphore checkUserAnomalieJob = new Semaphore(1);
+	
+	/** Sémaphore pour le job de sync de users */
 	public static final Semaphore syncNewUserJob = new Semaphore(1);
 	
 	/** Sémaphore pour le job de sync de users */
@@ -42,6 +45,7 @@ public class SemaphoreUtils {
 		semaphoreJobMap.put(JobUtils.SUPPR_ROLES_UNITAIRES_JOB, supprUnitRoleJob);
 		semaphoreJobMap.put(JobUtils.SUPPR_ROLES_MANUELS_INACTIFS, supprRoleManuelInactif);
 		semaphoreJobMap.put(JobUtils.SYNC_RESP_ROLE_JOB, syncRespRole);
+		semaphoreJobMap.put(JobUtils.CHECK_USERS_ANOMALIES_JOB, checkUserAnomalieJob);
 		
 	}
 
