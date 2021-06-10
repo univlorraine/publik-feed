@@ -22,6 +22,7 @@ public class UserPublikApi {
     private Boolean last_account_deletion_alert;
     private Boolean deleted;
     private Boolean deactivation;
+    private String deactivation_reason;
     private String title;
     private Boolean title_verified;
     private Boolean first_name_verified;
