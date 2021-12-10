@@ -133,10 +133,18 @@ public class RolePublikController {
 				for(PeopleLdap p : lp) {
 					//recuperation du uuid
 					String uuid = userHisService.getUuidFromLogin(p.getUid());
+					// Si la personne n'est pas déjà dans Publik
+					if(uuid == null)  {
+						// Création de la personne
+						if(userPublikController.createOrUpdateUser(p.getUid())) {
+							uuid = userHisService.getUuidFromLogin(p.getUid());
+						}
+					}
+					// Si on a la personne dans Publik
 					if(uuid != null) {
 						// Ajout du login à la liste
 						uuids.add(uuid);
-					}
+					} 
 				}
 			}
 		}
