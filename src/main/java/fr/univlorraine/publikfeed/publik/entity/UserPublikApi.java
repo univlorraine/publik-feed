@@ -16,6 +16,7 @@ public class UserPublikApi {
     private String last_name;
     private String email;
     private Boolean email_verified;
+    private String email_verified_date;
     private Boolean is_staff;
     private Boolean is_active;
     private String modified;
