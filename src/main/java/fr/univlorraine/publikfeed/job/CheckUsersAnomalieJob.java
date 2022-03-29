@@ -26,7 +26,7 @@ public class CheckUsersAnomalieJob {
 
 	@Resource
 	private UserPublikController userPublikController;
-	
+
 	@Resource
 	private UserPublikApiService userPublikApiService;
 
@@ -50,63 +50,67 @@ public class CheckUsersAnomalieJob {
 		if (!JobUtils.tryToStart(JobUtils.CHECK_USERS_ANOMALIES_JOB)) {
 			log.error("JOB ALREADY RUNNING");
 		} else {
+			try {
+				// Ajout timestamp du start dans la base
+				ProcessHis process = processHisService.getNewProcess(JobUtils.CHECK_USERS_ANOMALIES_JOB);
 
-			// Ajout timestamp du start dans la base
-			ProcessHis process = processHisService.getNewProcess(JobUtils.CHECK_USERS_ANOMALIES_JOB);
+				// Recuperation des users actifs
+				List<UserHis> lusers = userHisService.findAllActiv();
 
-			// Recuperation des users actifs
-			List<UserHis> lusers = userHisService.findAllActiv();
+				if(lusers != null ) {
 
-			if(lusers != null ) {
+					log.info("{} user ", lusers.size());
+					process.setNbObjTotal(lusers.size());
+					process.setNbObjTraite(0);
+					process.setNbObjErreur(0);
 
-				log.info("{} user ", lusers.size());
-				process.setNbObjTotal(lusers.size());
-				process.setNbObjTraite(0);
-				process.setNbObjErreur(0);
+					for(UserHis user : lusers) {
+						try {
+							// Si le user a un uuid publik renseigné
+							if(StringUtils.hasText(user.getUuid())){
+								// Récupération du user Publik
+								UserPublikApi userPublik = userPublikApiService.getUserByUuid(user.getUuid());
 
-				for(UserHis user : lusers) {
-					try {
-						// Si le user a un uuid publik renseigné
-						if(StringUtils.hasText(user.getUuid())){
-							// Récupération du user Publik
-							UserPublikApi userPublik = userPublikApiService.getUserByUuid(user.getUuid());
-							
-							//Si le user récupéré est null ou ne colle pas avec le user en base
-							if(userPublik== null || userPublik.getUsername()==null || !userPublik.getUsername().equals(user.getLogin()+Utils.EPPN_SUFFIX) ) {
-								System.out.println("### CHECK_USERS_ANOMALIES_JOB - USER : " + user.getLogin() + "en anomalie");
-								// Incrément du nombre d'objet traités
-								process.setNbObjErreur(process.getNbObjErreur() + 1);
+								//Si le user récupéré est null ou ne colle pas avec le user en base
+								if(userPublik== null || userPublik.getUsername()==null || !userPublik.getUsername().equals(user.getLogin()+Utils.EPPN_SUFFIX) ) {
+									System.out.println("### CHECK_USERS_ANOMALIES_JOB - USER : " + user.getLogin() + "en anomalie");
+									// Incrément du nombre d'objet traités
+									process.setNbObjErreur(process.getNbObjErreur() + 1);
+								}
+
 							}
+							// Incrément du nombre d'objet traités
+							process.setNbObjTraite(process.getNbObjTraite() + 1);
 
+							// sauvegarde du nombre d'objets traites dans la base
+							process = processHisService.update(process);
+						} catch (Exception e) {
+							System.out.println("### CHECK_USERS_ANOMALIES_JOB - USER : " + user.getLogin() + "en anomalie");
+							log.warn("### USER : {} en anomalie (exception)", user.getLogin());
+
+							// Incrément du nombre d'objet traités
+							process.setNbObjTraite(process.getNbObjTraite() + 1);
+
+							// Incrément du nombre d'objet traités
+							process.setNbObjErreur(process.getNbObjErreur() + 1);
+
+							// sauvegarde du nombre d'objets traites dans la base
+							process = processHisService.update(process);
 						}
-						// Incrément du nombre d'objet traités
-						process.setNbObjTraite(process.getNbObjTraite() + 1);
-
-						// sauvegarde du nombre d'objets traites dans la base
-						process = processHisService.update(process);
-					} catch (Exception e) {
-						System.out.println("### CHECK_USERS_ANOMALIES_JOB - USER : " + user.getLogin() + "en anomalie");
-						log.warn("### USER : {} en anomalie (exception)", user.getLogin());
-
-						// Incrément du nombre d'objet traités
-						process.setNbObjTraite(process.getNbObjTraite() + 1);
-
-						// Incrément du nombre d'objet traités
-						process.setNbObjErreur(process.getNbObjErreur() + 1);
-
-						// sauvegarde du nombre d'objets traites dans la base
-						process = processHisService.update(process);
 					}
 				}
+
+				// Ajout timestamp de fin dans la base
+				processHisService.end(process);
+
+
+				// Notifier l'arret du job
+				JobUtils.stop(JobUtils.CHECK_USERS_ANOMALIES_JOB);
+			} catch (Exception e) {
+				// Notifier l'arret du job
+				JobUtils.stop(JobUtils.CHECK_USERS_ANOMALIES_JOB);
+				throw e;
 			}
-
-			// Ajout timestamp de fin dans la base
-			processHisService.end(process);
-
-
-			// Notifier l'arret du job
-			JobUtils.stop(JobUtils.CHECK_USERS_ANOMALIES_JOB);
-
 		}
 		log.info("###################################################");
 		log.info("       END JOB "+JobUtils.CHECK_USERS_ANOMALIES_JOB);

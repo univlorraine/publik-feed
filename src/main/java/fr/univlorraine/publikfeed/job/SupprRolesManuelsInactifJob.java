@@ -41,7 +41,7 @@ public class SupprRolesManuelsInactifJob {
 
 	@Resource
 	private RolePublikApiService rolePublikApiService;
-	
+
 
 	@Resource
 	private UserHisService userHisService;
@@ -62,55 +62,59 @@ public class SupprRolesManuelsInactifJob {
 		if (!JobUtils.tryToStart(JobUtils.SUPPR_ROLES_MANUELS_INACTIFS)) {
 			log.error("JOB ALREADY RUNNING");
 		} else {
+			try {
+				// Ajout timestamp du start dans la base
+				ProcessHis process = processHisService.getNewProcess(JobUtils.SUPPR_ROLES_MANUELS_INACTIFS);
 
-			// Ajout timestamp du start dans la base
-			ProcessHis process = processHisService.getNewProcess(JobUtils.SUPPR_ROLES_MANUELS_INACTIFS);
+				// Recuperation des groupes actifs
+				List<RoleManuel> lroles = roleManuelService.findInactiveAndInPublik();
 
-			// Recuperation des groupes actifs
-			List<RoleManuel> lroles = roleManuelService.findInactiveAndInPublik();
+				if(lroles != null ) {
 
-			if(lroles != null ) {
+					log.info("{} roles ", lroles.size());
+					process.setNbObjTotal(lroles.size());
+					process.setNbObjTraite(0);
+					process.setNbObjErreur(0);
 
-				log.info("{} roles ", lroles.size());
-				process.setNbObjTotal(lroles.size());
-				process.setNbObjTraite(0);
-				process.setNbObjErreur(0);
+					for(RoleManuel role : lroles) {
+						try {
+							boolean isDeleted = rolePublikController.deleteRoleInPublik(role);
 
-				for(RoleManuel role : lroles) {
-					try {
-						boolean isDeleted = rolePublikController.deleteRoleInPublik(role);
-						
-						if(!isDeleted) {
-							// Incrément du nombre d'objet traités en erreur
+							if(!isDeleted) {
+								// Incrément du nombre d'objet traités en erreur
+								process.setNbObjErreur(process.getNbObjErreur() + 1);
+							}
+							// Incrément du nombre d'objet traités
+							process.setNbObjTraite(process.getNbObjTraite() + 1);
+
+							// sauvegarde du nombre d'objets traites dans la base
+							process = processHisService.update(process);
+						} catch (Exception e) {
+							log.warn("Erreur lors du traitement du role", role.getId());
+
+							// Incrément du nombre d'objet traités
+							process.setNbObjTraite(process.getNbObjTraite() + 1);
+
+							// Incrément du nombre d'objet traités
 							process.setNbObjErreur(process.getNbObjErreur() + 1);
+
+							// sauvegarde du nombre d'objets traites dans la base
+							process = processHisService.update(process);
 						}
-						// Incrément du nombre d'objet traités
-						process.setNbObjTraite(process.getNbObjTraite() + 1);
-
-						// sauvegarde du nombre d'objets traites dans la base
-						process = processHisService.update(process);
-					} catch (Exception e) {
-						log.warn("Erreur lors du traitement du role", role.getId());
-
-						// Incrément du nombre d'objet traités
-						process.setNbObjTraite(process.getNbObjTraite() + 1);
-
-						// Incrément du nombre d'objet traités
-						process.setNbObjErreur(process.getNbObjErreur() + 1);
-
-						// sauvegarde du nombre d'objets traites dans la base
-						process = processHisService.update(process);
 					}
 				}
+
+				// Ajout timestamp de fin dans la base
+				processHisService.end(process);
+
+
+				// Notifier l'arret du job
+				JobUtils.stop(JobUtils.SUPPR_ROLES_MANUELS_INACTIFS);
+			} catch (Exception e) {
+				// Notifier l'arret du job
+				JobUtils.stop(JobUtils.SUPPR_ROLES_MANUELS_INACTIFS);
+				throw e;
 			}
-
-			// Ajout timestamp de fin dans la base
-			processHisService.end(process);
-
-
-			// Notifier l'arret du job
-			JobUtils.stop(JobUtils.SUPPR_ROLES_MANUELS_INACTIFS);
-
 		}
 		log.info("###################################################");
 		log.info("       END JOB "+JobUtils.SUPPR_ROLES_MANUELS_INACTIFS);

@@ -60,58 +60,63 @@ public class NewUsersSyncJob {
 		if (!JobUtils.tryToStart(JobUtils.SYNC_NEW_USERS_JOB)) {
 			log.error("JOB ALREADY RUNNING");
 		} else {
+			try {
+				// Ajout timestamp du start dans la base
+				ProcessHis process = processHisService.getNewProcess(JobUtils.SYNC_NEW_USERS_JOB);
 
-			// Ajout timestamp du start dans la base
-			ProcessHis process = processHisService.getNewProcess(JobUtils.SYNC_NEW_USERS_JOB);
+				// récupération du dernier ProcessHis pour le job avec date de fin non null
+				ProcessHis lastExec = processHisService.getLastSuccessExc(JobUtils.SYNC_NEW_USERS_JOB);
 
-			// récupération du dernier ProcessHis pour le job avec date de fin non null
-			ProcessHis lastExec = processHisService.getLastSuccessExc(JobUtils.SYNC_NEW_USERS_JOB);
+				// Par défaut j - 6 mois
+				LocalDateTime dateLastRun = LocalDateTime.now().minusMonths(6);
 
-			// Par défaut j - 6 mois
-			LocalDateTime dateLastRun = LocalDateTime.now().minusMonths(6);
-
-			// calcul de la date evenement
-			if(lastExec!=null && lastExec.getDatFin()!=null) {
-				// On prend la date de début comme date max des maj ldap ignorées
-				dateLastRun = lastExec.getId().getDatDeb();
-			}
-
-			//Synchro des users créés dans Publik et qu'on a pas encore dans la base (les étudiants notamment)
-			List<UserPublikApi> listNewUsers = userPublikController.getLastModified(dateLastRun);
-			if(listNewUsers!=null && !listNewUsers.isEmpty()) {
-
-				process.setNbObjTotal(listNewUsers.size());
-				process.setNbObjTraite(0);
-				process.setNbObjErreur(0);
-
-				// sauvegarde du nombre d'objets à traiter dans la base
-				process = processHisService.update(process);
-
-				// Pour chaque user modifié dans Publik
-				for(UserPublikApi userPublik : listNewUsers) {
-					// Si c'est un user UL
-					if(userPublik != null && userPublik.getUsername() != null && userPublik.getUsername().contains(Utils.EPPN_SUFFIX)) {
-						// Récupération du login
-						String login = userPublik.getUsername().split("@")[0];
-						// Si pas dans la base
-						if(!userHisService.find(login).isPresent()) {
-							log.info("{} présent dans Publik mais pas en base", login);
-							userPublikController.createOrUpdateUser(login);
-						}
-					}
-					process.setNbObjTraite(process.getNbObjTraite() + 1);
-
-					// sauvegarde du nombre d'objets traites dans la base
-					process = processHisService.update(process);
+				// calcul de la date evenement
+				if(lastExec!=null && lastExec.getDatFin()!=null) {
+					// On prend la date de début comme date max des maj ldap ignorées
+					dateLastRun = lastExec.getId().getDatDeb();
 				}
+
+				//Synchro des users créés dans Publik et qu'on a pas encore dans la base (les étudiants notamment)
+				List<UserPublikApi> listNewUsers = userPublikController.getLastModified(dateLastRun);
+				if(listNewUsers!=null && !listNewUsers.isEmpty()) {
+
+					process.setNbObjTotal(listNewUsers.size());
+					process.setNbObjTraite(0);
+					process.setNbObjErreur(0);
+
+					// sauvegarde du nombre d'objets à traiter dans la base
+					process = processHisService.update(process);
+
+					// Pour chaque user modifié dans Publik
+					for(UserPublikApi userPublik : listNewUsers) {
+						// Si c'est un user UL
+						if(userPublik != null && userPublik.getUsername() != null && userPublik.getUsername().contains(Utils.EPPN_SUFFIX)) {
+							// Récupération du login
+							String login = userPublik.getUsername().split("@")[0];
+							// Si pas dans la base
+							if(!userHisService.find(login).isPresent()) {
+								log.info("{} présent dans Publik mais pas en base", login);
+								userPublikController.createOrUpdateUser(login);
+							}
+						}
+						process.setNbObjTraite(process.getNbObjTraite() + 1);
+
+						// sauvegarde du nombre d'objets traites dans la base
+						process = processHisService.update(process);
+					}
+				}
+
+				// Ajout timestamp de fin dans la base
+				processHisService.end(process);
+
+
+				// Notifier l'arret du job
+				JobUtils.stop(JobUtils.SYNC_NEW_USERS_JOB);
+			} catch (Exception e) {
+				// Notifier l'arret du job
+				JobUtils.stop(JobUtils.SYNC_NEW_USERS_JOB);
+				throw e;
 			}
-
-			// Ajout timestamp de fin dans la base
-			processHisService.end(process);
-
-
-			// Notifier l'arret du job
-			JobUtils.stop(JobUtils.SYNC_NEW_USERS_JOB);
 
 		}
 		log.info("###################################################");
