@@ -13,11 +13,12 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.3.0.RELEASE</version>
+		<!-- <version>2.3.0.RELEASE</version> -->
+		<version>2.5.12</version>
 	</parent>
 
 	<properties>
-		<revision>1.5.8</revision>
+		<revision>1.5.9</revision>
 		<sha1></sha1>
 		<changelist>-SNAPSHOT</changelist>
 
@@ -191,6 +192,12 @@
 	<build>
 		<defaultGoal>spring-boot:run</defaultGoal>
 		<plugins>
+			 <!--<plugin>
+    			<groupId>org.apache.maven.plugins</groupId>
+    			<artifactId>maven-resources-plugin</artifactId>
+    			<version>3.1.0</version>  
+			</plugin>-->
+			
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-war-plugin</artifactId>
