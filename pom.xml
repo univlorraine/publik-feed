@@ -1,4 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+
+    Copyright (c) 2022 Université de Lorraine, 18/02/2021
+
+    dn-sied-dev@univ-lorraine.fr
+
+    Ce logiciel est un programme informatique servant à alimenter Publik depuis des groupes LDAP.
+
+    Ce logiciel est régi par la licence CeCILL 2.1 soumise au droit français et
+    respectant les principes de diffusion des logiciels libres. Vous pouvez
+    utiliser, modifier et/ou redistribuer ce programme sous les conditions
+    de la licence CeCILL telle que diffusée par le CEA, le CNRS et l'INRIA
+    sur le site "http://www.cecill.info".
+
+    En contrepartie de l'accessibilité au code source et des droits de copie,
+    de modification et de redistribution accordés par cette licence, il n'est
+    offert aux utilisateurs qu'une garantie limitée.  Pour les mêmes raisons,
+    seule une responsabilité restreinte pèse sur l'auteur du programme,  le
+    titulaire des droits patrimoniaux et les concédants successifs.
+
+    A cet égard  l'attention de l'utilisateur est attirée sur les risques
+    associés au chargement,  à l'utilisation,  à la modification et/ou au
+    développement et à la reproduction du logiciel par l'utilisateur étant
+    donné sa spécificité de logiciel libre, qui peut le rendre complexe à
+    manipuler et qui le réserve donc à des développeurs et des professionnels
+    avertis possédant  des  connaissances  informatiques approfondies.  Les
+    utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
+    logiciel à leurs besoins dans des conditions permettant d'assurer la
+    sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+    à l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+
+    Le fait que vous puissiez accéder à cet en-tête signifie que vous avez
+    pris connaissance de la licence CeCILL 2.1, et que vous en avez accepté les
+    termes.
+
+
+-->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -13,16 +51,19 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.3.0.RELEASE</version>
+		<!-- <version>2.3.0.RELEASE</version> -->
+		<version>2.5.12</version>
 	</parent>
 
 	<properties>
-		<revision>0.5.0</revision>
+		<revision>1.5.10</revision>
 		<sha1></sha1>
 		<changelist>-SNAPSHOT</changelist>
 
 		<java.version>11</java.version>
-		<vaadin.version>14.2.0</vaadin.version>
+		<vaadin.version>14.5.1</vaadin.version>
+		<!-- <vaadin.version>14.4.10</vaadin.version>  -->
+		<!-- <vaadin.version>14.2.0</vaadin.version>  -->
 	</properties>
 
 	<dependencyManagement>
@@ -189,6 +230,12 @@
 	<build>
 		<defaultGoal>spring-boot:run</defaultGoal>
 		<plugins>
+			 <!--<plugin>
+    			<groupId>org.apache.maven.plugins</groupId>
+    			<artifactId>maven-resources-plugin</artifactId>
+    			<version>3.1.0</version>  
+			</plugin>-->
+			
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-war-plugin</artifactId>
@@ -238,6 +285,73 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-failsafe-plugin</artifactId>
 			</plugin>
+			
+			
+			<!-- License plugin -->
+			<plugin>
+    			<groupId>com.mycila</groupId>
+    			<artifactId>license-maven-plugin</artifactId>
+    			<version>2.3</version>
+    			<configuration>
+        		<header>license/LICENSE-header.txt</header>
+        		<properties>
+            		<owner>ESUP-Portail</owner>
+        		</properties>
+        		<includes>
+        		<include>**/*.java</include>
+        		<include>**/*.xml</include>
+        		</includes>
+        		 <excludes>
+            		<exclude>**/*.properties</exclude>
+            		<exclude>.m2/**/*.*</exclude>
+        		</excludes>
+    			</configuration>
+    			<executions>
+        			<execution>
+            			<goals>
+                			<goal>check</goal>
+            			</goals>
+        			</execution>
+    			</executions>
+			</plugin>
+
+			<!-- Notice plugin -->
+			<plugin>
+                <groupId>org.jasig.maven</groupId>
+                <artifactId>maven-notice-plugin</artifactId>
+                <version>1.0.6</version>
+                <configuration>
+                    <noticeTemplate>license/NOTICE.template</noticeTemplate>
+                    <licenseMapping>
+                        <param>license/license-mappings.xml</param>
+                    </licenseMapping>
+                </configuration>
+                <dependencies>
+                	<!-- Jaxb API -->
+    				<dependency>
+    					<groupId>com.sun.xml.bind</groupId>
+    					<artifactId>jaxb-core</artifactId>
+    					<version>2.3.0.1</version>
+					</dependency>
+					<dependency>
+    					<groupId>javax.xml.bind</groupId>
+    					<artifactId>jaxb-api</artifactId>
+    					<version>2.3.1</version>
+					</dependency>
+					<dependency>
+    					<groupId>com.sun.xml.bind</groupId>
+    					<artifactId>jaxb-impl</artifactId>
+    					<version>2.3.1</version>
+					</dependency>
+					<dependency>
+    					<groupId>org.javassist</groupId>
+    					<artifactId>javassist</artifactId>
+    					<version>3.25.0-GA</version>
+					</dependency>
+                </dependencies>
+	    	</plugin>
+	    	
+
 		</plugins>
 	</build>
 

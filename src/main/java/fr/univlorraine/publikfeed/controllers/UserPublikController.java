@@ -1,3 +1,39 @@
+/**
+ *
+ * Copyright (c) 2022 Université de Lorraine, 18/02/2021
+ *
+ * dn-sied-dev@univ-lorraine.fr
+ *
+ * Ce logiciel est un programme informatique servant à alimenter Publik depuis des groupes LDAP.
+ *
+ * Ce logiciel est régi par la licence CeCILL 2.1 soumise au droit français et
+ * respectant les principes de diffusion des logiciels libres. Vous pouvez
+ * utiliser, modifier et/ou redistribuer ce programme sous les conditions
+ * de la licence CeCILL telle que diffusée par le CEA, le CNRS et l'INRIA
+ * sur le site "http://www.cecill.info".
+ *
+ * En contrepartie de l'accessibilité au code source et des droits de copie,
+ * de modification et de redistribution accordés par cette licence, il n'est
+ * offert aux utilisateurs qu'une garantie limitée.  Pour les mêmes raisons,
+ * seule une responsabilité restreinte pèse sur l'auteur du programme,  le
+ * titulaire des droits patrimoniaux et les concédants successifs.
+ *
+ * A cet égard  l'attention de l'utilisateur est attirée sur les risques
+ * associés au chargement,  à l'utilisation,  à la modification et/ou au
+ * développement et à la reproduction du logiciel par l'utilisateur étant
+ * donné sa spécificité de logiciel libre, qui peut le rendre complexe à
+ * manipuler et qui le réserve donc à des développeurs et des professionnels
+ * avertis possédant  des  connaissances  informatiques approfondies.  Les
+ * utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
+ * logiciel à leurs besoins dans des conditions permettant d'assurer la
+ * sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+ * à l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+ *
+ * Le fait que vous puissiez accéder à cet en-tête signifie que vous avez
+ * pris connaissance de la licence CeCILL 2.1, et que vous en avez accepté les
+ * termes.
+ *
+ */
 package fr.univlorraine.publikfeed.controllers;
 
 import java.time.LocalDateTime;
@@ -16,6 +52,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.univlorraine.publikfeed.json.entity.RoleJson;
 import fr.univlorraine.publikfeed.json.entity.UserJson;
 import fr.univlorraine.publikfeed.ldap.entity.PeopleLdap;
+import fr.univlorraine.publikfeed.ldap.services.LdapGenericService;
 import fr.univlorraine.publikfeed.model.app.entity.RoleAuto;
 import fr.univlorraine.publikfeed.model.app.entity.UserHis;
 import fr.univlorraine.publikfeed.model.app.entity.UserRole;
@@ -34,6 +71,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class UserPublikController {
 
+	@Resource
+	private ErrorController errorController;
 
 	@Resource
 	private UserHisService userHisService;
@@ -47,7 +86,30 @@ public class UserPublikController {
 	@Resource
 	private RolePublikApiService rolePublikApiService;
 
-	public void createOrUpdateUser(PeopleLdap p) throws Exception {
+
+	@Resource
+	private LdapGenericService<PeopleLdap> ldapPeopleService;
+
+
+	public boolean createOrUpdateUser(String login) {
+		try {
+			PeopleLdap p = ldapPeopleService.findByPrimaryKey(login);
+			if(p!=null) {
+				try {
+					return createOrUpdateUser(p);
+				} catch (Exception e) {
+					log.warn("Une exception est survenue pendant la création de " + login + " dans Publik",e);
+					// gestion de l'erreur
+					errorController.check(e, p);
+				}
+			}
+		} catch (Exception e) {
+			log.warn("Une exception est survenue pendant le createOrUpdateUser de "+login,e);
+		}
+		return false;
+	} 
+
+	public boolean createOrUpdateUser(PeopleLdap p) throws Exception {
 
 		String userUuid=null;
 
@@ -86,8 +148,8 @@ public class UserPublikController {
 				log.info("{} present en base", p.getUid());
 			}
 
-			// Si on a toujours aucune entrée en base
-			if(!ouh.isPresent()) {
+			// Si on a toujours aucune entrée en base ou qu'il est supprimé dans publik
+			if(!ouh.isPresent() || ouh.get().getDatSup()!=null) {
 				log.info("Le compte {} doit etre créé dans Publik",p.getUid());
 				// créer le user dans Publik
 				UserPublikApi response = userPublikApiService.createUser(userLdap);
@@ -146,7 +208,7 @@ public class UserPublikController {
 						log.info("Le compte {} a été mis a jour dans la base",p.getUid());
 					}
 				} else {
-					// inutile de pousse les infos du compte dans Publik car les attributs nécessaire a publik ne sont pas impactes
+					// inutile de pousser les infos du compte dans Publik car les attributs nécessaire a publik ne sont pas impactes
 					UserHis user = ouh.get();
 					// on maj la date dans la base pour ne pas refaire le comparatif des data au prochain run
 					user.setDatMaj(LocalDateTime.now());
@@ -158,19 +220,21 @@ public class UserPublikController {
 
 			// Vérification des roles nominatifs
 			checkRolesUnitaires(p, userUuid);
+
 		} else {
 			log.info("{} dateMaj superieure au modifytimestamp. Compte non traite", p.getUid());
 		}
+		return true;
 
 	}
 
 	public void checkRolesUnitaires(PeopleLdap p,  String userUuid) throws Exception {
 		List<String> listeRole = new LinkedList<String> ();
 
-		// Si ce n'est pas un étudiant
-		if(StringUtils.hasText(p.getSupannEtuId()) && !StringUtils.hasText(p.getSupannEmpId())) {
+		// Si ce n'est pas un compte étudiant 
+		if(Utils.isNotStudent(p)) {	
 			// Traitement role unitaire nominatif
-			String roleName = Utils.PREFIX_ROLE_UNITAIRE + Utils.PREFIX_ROLE_NOMINATIF + p.getEduPersonPrincipalName();
+			String roleName =  getRoleUnitairePersonnel(p.getEduPersonPrincipalName());
 			createOrUpdateRole(roleName, p.getUid(), userUuid);
 			listeRole.add(roleName);
 		}
@@ -178,6 +242,13 @@ public class UserPublikController {
 		// Role Pers UL
 		if(StringUtils.hasText(p.getSupannEmpId())) {
 			String roleEmpName = Utils.PREFIX_ROLE_UNITAIRE + Utils.PREFIX_ROLE_PERSONNEL;
+			createOrUpdateRole(roleEmpName, p.getUid(), userUuid);
+			listeRole.add(roleEmpName);
+		}
+
+		// Si pas un compte étudiant et pas de supannEmpId (IN ou Partenaire)
+		if(Utils.isNotStudent(p) && !StringUtils.hasText(p.getSupannEmpId())) {
+			String roleEmpName = Utils.PREFIX_ROLE_UNITAIRE + Utils.PREFIX_ROLE_AUTRES;
 			createOrUpdateRole(roleEmpName, p.getUid(), userUuid);
 			listeRole.add(roleEmpName);
 		}
@@ -286,5 +357,103 @@ public class UserPublikController {
 		}
 		return false;
 	}
+
+	public void ajoutUuidsFromLogin(List<String> uuids, String logins) {
+		// ajout admins par defaut
+		String[] tlogins = logins.split(",");
+		if(tlogins!=null && tlogins.length>0) {
+			for(String login : tlogins) {
+				//recuperation du uuid
+				String uuid = userHisService.getUuidFromLogin(login);
+				// Si on a un uuid et qu'il est pas déjà dans la liste
+				if(uuid != null && !uuids.contains(uuid)) {
+					// Ajout du login à la liste
+					uuids.add(uuid);
+				} else {
+					log.info("Uuid de {} non trouve ou deja dans la liste, uuid : ", login, uuid);
+				}
+			}
+		}
+
+	}
+
+	public boolean suppressionUser(UserHis user) {
+
+		// Si on a l'uuid publik 
+		if(StringUtils.hasText(user.getUuid()) ) {
+			UserPublikApi  userPublik = userPublikApiService.getUserByUuid(user.getUuid());
+			
+			// Si le user n'est plus dans publik ou si la suppression du user dans publik s'est bien passée
+			if(userPublik == null || userPublikApiService.deleteUser(user.getUuid())) {
+
+				// récupération de l'uuid du role spécifique à la personne
+				String roleEppnId = getRoleUnitairePersonnel(user.getLogin() + Utils.EPPN_SUFFIX);
+
+				// Si le user possede le role eppn dans la base
+				Optional<UserRole> roleEppn = roleAutoService.findUserRole(user.getLogin(), roleEppnId);
+				if(roleEppn.isPresent()) {
+					// Récupération du role dans la base
+					Optional<RoleAuto> roleAuto = roleAutoService.findRole(roleEppnId);
+					// Si on a trouvé le role dans la base
+					if(roleAuto.isPresent()) {
+						// Suppression du role spécifique de la personne dans publik
+						if(rolePublikApiService.deleteRole(roleAuto.get().getUuid())) {
+							log.info(" Role {} ({}) supprimé dans Publik", roleAuto.get().getId(), roleAuto.get().getUuid());
+
+							// Maj bdd du lien avec le user
+							roleEppn.get().setDatMaj(LocalDateTime.now());
+							roleEppn.get().setDatSup(LocalDateTime.now());
+							UserRole userRoleEppnBdd = roleAutoService.saveUserRole(roleEppn.get());
+
+							log.info("Date suppr du lien User - Role : {} - {} mis a jour dans la base",userRoleEppnBdd.getId().getLogin(), userRoleEppnBdd.getId().getRoleId());
+
+							// Maj bdd du role
+							roleAuto.get().setDatMaj(LocalDateTime.now());
+							roleAuto.get().setDatSup(LocalDateTime.now());
+							RoleAuto roleEppnBdd = roleAutoService.saveRole(roleAuto.get());
+
+							log.info("Date suppr du Role {} mis a jour dans la base", roleEppnBdd.getDatSup());
+
+						}
+
+					}
+				}
+
+				// suppression dans la base de tous les roles associés à la personne (fait automatiquement dans publik lors de la suppr de la personne)
+				List<UserRole> listRole = roleAutoService.findRolesFromLogin(user.getLogin());
+				if(listRole != null && !listRole.isEmpty()) {
+					for(UserRole ur : listRole) {
+						if(ur!=null && ur.getDatSup()==null) {
+							ur.setDatSup(LocalDateTime.now());
+							ur = roleAutoService.saveUserRole(ur);
+							log.info("Date suppr du lien User - Role : {} - {} mis a jour dans la base", ur.getId().getLogin(), ur.getId().getRoleId());
+
+						}
+					}
+				}
+
+				// TODO Probleme des roles qui se retrouvent potentiellement vide?
+
+				// maj des roles de la personne dans la base de données
+				user.setDatSup(LocalDateTime.now());
+				user = userHisService.save(user);
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private String getRoleUnitairePersonnel(String eppn) {
+		return Utils.PREFIX_ROLE_UNITAIRE + Utils.PREFIX_ROLE_NOMINATIF + eppn;
+	}
+
+	public List<UserPublikApi> getLastModified(LocalDateTime dateLastRun) {
+		String lastModifiedDate = Utils.formatDateForPublik(dateLastRun);
+		return userPublikApiService.getUserLastModified(lastModifiedDate);
+	}
+
+
+
 
 }
