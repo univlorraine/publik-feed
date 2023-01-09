@@ -42,19 +42,14 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
-import org.flywaydb.core.internal.util.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import fr.univlorraine.publikfeed.controllers.UserPublikController;
 import fr.univlorraine.publikfeed.ldap.entity.PeopleLdap;
-import fr.univlorraine.publikfeed.ldap.exceptions.LdapServiceException;
 import fr.univlorraine.publikfeed.ldap.services.LdapGenericService;
 import fr.univlorraine.publikfeed.model.app.entity.ProcessHis;
-import fr.univlorraine.publikfeed.model.app.entity.UserErrHis;
-import fr.univlorraine.publikfeed.model.app.entity.UserHis;
 import fr.univlorraine.publikfeed.model.app.services.ProcessHisService;
-import fr.univlorraine.publikfeed.model.app.services.UserErrHisService;
 import fr.univlorraine.publikfeed.model.app.services.UserHisService;
 import fr.univlorraine.publikfeed.publik.entity.UserPublikApi;
 import fr.univlorraine.publikfeed.utils.JobUtils;

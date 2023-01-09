@@ -36,9 +36,12 @@
  */
 package fr.univlorraine.publikfeed.publik.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import lombok.Data;
 
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class RolePublikApi {
     private String name;
     private String ou;
