@@ -127,7 +127,7 @@ public class UsersSyncJob {
 					log.info("aucun compte en anomalie");
 				}
 
-				// Filtre ldap
+				// Filtre ldap pour récupérer les comptes ldap modifiés depuis la dernière execution
 				String filtre = "(&"+filtreSyncUser+"(modifytimestamp>=" + dateLdap + "))";
 
 				// Execution du filtre ldap
@@ -190,7 +190,7 @@ public class UsersSyncJob {
 
 
 
-
+				// Si on a des users en anomalie à repasser
 				if(listLoginToRetry!=null && !listLoginToRetry.isEmpty()) {
 
 					for(String login : listLoginToRetry) {
