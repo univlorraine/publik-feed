@@ -49,6 +49,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.support.BasicAuthenticationInterceptor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -75,15 +76,15 @@ public class UserPublikApiService {
 
 	@Value("${publik.api.baseurl}")
 	private transient String apiUrl;
-	
+
 	@Value("${publik.api.gravitee.header}")
 	private transient String graviteeHeader;
-	
+
 	@Value("${publik.api.gravitee.apikey}")
 	private transient String graviteeKey;
 
 
-	
+
 	public UserPublikApi getUserByUuid(String uuid) {
 		log.info("getUserByUuid :  {}", uuid );
 		// On récupère l'URL de l'api
@@ -99,33 +100,45 @@ public class UserPublikApiService {
 		log.info("call url : " + purl + " uuid=>" + uuid);
 
 		rt.getInterceptors().add(new BasicAuthenticationInterceptor(apiUsername, apiPassword));
-		//Appelle du WS qui retourne le user publik
-		ResponseEntity<String> response = rt.exchange(purl, HttpMethod.GET, Utils.createRequest(null, graviteeHeader, graviteeKey), String.class, params);
+		try {
+			//Appelle du WS qui retourne le user publik
+			ResponseEntity<String> response = rt.exchange(purl, HttpMethod.GET, Utils.createRequest(null, graviteeHeader, graviteeKey), String.class, params);
 
-		log.info("Publik Response :" + response);
+			log.info("Publik Response :" + response);
 
-		//Si on a eu une réponse de type OK ou NOT_FOUND
-		if (response != null && response.getStatusCode()!=null && (response.getStatusCode().equals(HttpStatus.NOT_FOUND) || response.getStatusCode().equals(HttpStatus.OK))) {
-			// Si not found
-			if (response.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
-				return null;
-			}
-			try {
-				// Si user recupéré
-				if (response.getStatusCode().equals(HttpStatus.OK)) {
-					ObjectMapper objectMapper = new ObjectMapper();
-					UserPublikApi upar = objectMapper.readValue(response.getBody(), UserPublikApi.class);
-					return upar;
+			//Si on a eu une réponse de type OK ou NOT_FOUND
+			if (response != null && response.getStatusCode()!=null && (response.getStatusCode().equals(HttpStatus.NOT_FOUND) || response.getStatusCode().equals(HttpStatus.OK))) {
+				// Si not found
+				if (response.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
+					return null;
 				}
+				try {
+					// Si user recupéré
+					if (response.getStatusCode().equals(HttpStatus.OK)) {
+						ObjectMapper objectMapper = new ObjectMapper();
+						UserPublikApi upar = objectMapper.readValue(response.getBody(), UserPublikApi.class);
+						return upar;
+					}
 
-			} catch (Exception e) {
-				log.error("Erreur ObjectMapper lors de getUserByUuid pour "+uuid, e);
+				} catch (Exception e) {
+					log.error("Erreur ObjectMapper lors de getUserByUuid pour "+uuid, e);
+				}
+			}
+
+		}catch(HttpClientErrorException hcee) {
+			if(hcee != null && hcee.getStatusCode().is4xxClientError() && hcee.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
+				if(hcee.getResponseBodyAsString()!=null && hcee.getResponseBodyAsString().contains("Pas trouvé.")) {
+					log.warn("User non trouvé. Uuid {} not found", uuid);
+					return null;
+				}
 			} 
+			throw hcee;
 		}
+
 		return null;
 
 	}
-	
+
 	/**
 	 * Recherche un user dans Publik
 	 * @param username
@@ -343,7 +356,7 @@ public class UserPublikApiService {
 
 
 
-	
+
 
 
 }
