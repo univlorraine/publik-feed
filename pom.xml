@@ -56,7 +56,7 @@
 	</parent>
 
 	<properties>
-		<revision>1.5.12</revision>
+		<revision>1.5.13</revision>
 		<sha1></sha1>
 		<changelist>-SNAPSHOT</changelist>
 
