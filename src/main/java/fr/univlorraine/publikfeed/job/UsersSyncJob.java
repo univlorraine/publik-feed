@@ -152,7 +152,7 @@ public class UsersSyncJob {
 								if(Utils.isNotStudent(p) || userHisService.find(p.getUid()).isPresent()) {
 									try {
 										// Création ou maj de l'utilisateur dans Publik
-										userPublikController.createOrUpdateUser(p);
+										userPublikController.createOrUpdateUser(p, false);
 
 										// Incrément du nombre d'objet traités
 										process.setNbObjTraite(process.getNbObjTraite() + 1);
@@ -201,7 +201,7 @@ public class UsersSyncJob {
 
 							if(p!=null) {
 								// Création ou maj de l'utilisateur dans Publik
-								userPublikController.createOrUpdateUser(p);
+								userPublikController.createOrUpdateUser(p, false);
 
 								// Incrément du nombre d'objet traités
 								process.setNbObjTraite(process.getNbObjTraite() + 1);
