@@ -211,7 +211,7 @@ public class UsersView extends VerticalLayout implements HasDynamicTitle, HasHea
 		detailLayout.add(deleteButton);
 		
 		
-		Button addButton = new Button("Créer dans Publik");
+		Button addButton = new Button("Créer/Maj dans Publik");
 		addButton.setIcon(VaadinIcon.ADD_DOCK.create());
 		addButton.addClickListener(e-> {
 			if(userPublikController.createOrUpdateUser(u.getLogin())) {
@@ -222,7 +222,8 @@ public class UsersView extends VerticalLayout implements HasDynamicTitle, HasHea
 				Notification.show(getTranslation("users.add.ko.notif", LocalTime.now()));
 			}	
 		});
-		addButton.setVisible(u.getDatSup()!=null);
+		//addButton.setVisible(u.getDatSup()!=null);
+		addButton.setVisible(true);
 		detailLayout.add(addButton);
 
 		return detailLayout;
