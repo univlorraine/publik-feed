@@ -127,7 +127,7 @@ public class NewUsersSyncJob {
 							// Si pas dans la base
 							if(!userHisService.find(login).isPresent()) {
 								log.info("{} présent dans Publik mais pas en base", login);
-								userPublikController.createOrUpdateUser(login);
+								userPublikController.createOrUpdateUser(login, false);
 							}
 						}
 						process.setNbObjTraite(process.getNbObjTraite() + 1);

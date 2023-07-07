@@ -91,12 +91,12 @@ public class UserPublikController {
 	private LdapGenericService<PeopleLdap> ldapPeopleService;
 
 
-	public boolean createOrUpdateUser(String login) {
+	public boolean createOrUpdateUser(String login, boolean force) {
 		try {
 			PeopleLdap p = ldapPeopleService.findByPrimaryKey(login);
 			if(p!=null) {
 				try {
-					return createOrUpdateUser(p);
+					return createOrUpdateUser(p, force);
 				} catch (Exception e) {
 					log.warn("Une exception est survenue pendant la création de " + login + " dans Publik",e);
 					// gestion de l'erreur
@@ -109,7 +109,7 @@ public class UserPublikController {
 		return false;
 	} 
 
-	public boolean createOrUpdateUser(PeopleLdap p) throws Exception {
+	public boolean createOrUpdateUser(PeopleLdap p, boolean force) throws Exception {
 
 		String userUuid=null;
 
@@ -125,7 +125,7 @@ public class UserPublikController {
 		Optional<UserHis> ouh = userHisService.find(p.getUid());
 
 		// Si le user n'est pas dans la base ou si on ne l'a pas déjà traité depuis sa dernière maj ldap
-		if(!ouh.isPresent() || ouh.get().getDatMaj()==null || p.getModifyTimestamp()==null || ouh.get().getDatMaj().isBefore(Utils.getDateFromLdap(p.getModifyTimestamp()))) {
+		if(force || !ouh.isPresent() || ouh.get().getDatMaj()==null || p.getModifyTimestamp()==null || ouh.get().getDatMaj().isBefore(Utils.getDateFromLdap(p.getModifyTimestamp()))) {
 			// Si on a aucune entrée en base
 			if(!ouh.isPresent()) {
 				log.info("{} non present en base", p.getUid());

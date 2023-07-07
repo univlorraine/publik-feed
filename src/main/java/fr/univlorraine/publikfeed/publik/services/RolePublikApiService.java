@@ -46,6 +46,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.support.BasicAuthenticationInterceptor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -74,10 +75,10 @@ public class RolePublikApiService {
 
 	@Value("${publik.api.baseurl}")
 	private transient String apiUrl;
-	
+
 	@Value("${publik.api.gravitee.header}")
 	private transient String graviteeHeader;
-	
+
 	@Value("${publik.api.gravitee.apikey}")
 	private transient String graviteeKey;
 
@@ -283,16 +284,26 @@ public class RolePublikApiService {
 
 		rt.getInterceptors().add(new BasicAuthenticationInterceptor(apiUsername, apiPassword));
 
-		//Appelle du WS qui créé le role Publik
-		@SuppressWarnings("unchecked")
-		ResponseEntity<String> response = rt.exchange(url, HttpMethod.DELETE, Utils.createRequest(null, graviteeHeader, graviteeKey), String.class, params);
+		try {
+			//Appelle du WS qui créé le role Publik
+			@SuppressWarnings("unchecked")
+			ResponseEntity<String> response = rt.exchange(url, HttpMethod.DELETE, Utils.createRequest(null, graviteeHeader, graviteeKey), String.class, params);
 
-		log.info("Publik Response " + response.getStatusCode() +" :" + response);
+			log.info("Publik Response " + response.getStatusCode() +" :" + response);
 
-		//Si on a eu une réponse
-		if (response.getStatusCode().equals(HttpStatus.OK) || response.getStatusCode().equals(HttpStatus.NO_CONTENT)) {
-			log.info("Suppression role reponse OK : {}", response.getStatusCode());
-			return true;
+			//Si on a eu une réponse
+			if (response.getStatusCode().equals(HttpStatus.OK) || response.getStatusCode().equals(HttpStatus.NO_CONTENT)) {
+				log.info("Suppression role reponse OK : {}", response.getStatusCode());
+				return true;
+			}
+		} catch(HttpClientErrorException hcee) {
+			if(hcee != null && hcee.getStatusCode().is4xxClientError() && hcee.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
+				if(hcee.getResponseBodyAsString()!=null && hcee.getResponseBodyAsString().contains("Pas trouvé.")) {
+					log.warn("Role non trouvé. Uuid {} not found", uuid);
+					return true;
+				}
+			} 
+			throw hcee;
 		}
 		return false;
 

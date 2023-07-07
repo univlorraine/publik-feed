@@ -172,7 +172,7 @@ public class RolePublikController {
 					// Si la personne n'est pas déjà dans Publik
 					if(uuid == null)  {
 						// Création de la personne
-						if(userPublikController.createOrUpdateUser(p.getUid())) {
+						if(userPublikController.createOrUpdateUser(p.getUid(), false)) {
 							uuid = userHisService.getUuidFromLogin(p.getUid());
 						}
 					}

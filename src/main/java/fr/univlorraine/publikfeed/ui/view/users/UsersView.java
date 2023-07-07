@@ -211,10 +211,10 @@ public class UsersView extends VerticalLayout implements HasDynamicTitle, HasHea
 		detailLayout.add(deleteButton);
 		
 		
-		Button addButton = new Button("Créer dans Publik");
+		Button addButton = new Button("Créer/Maj dans Publik");
 		addButton.setIcon(VaadinIcon.ADD_DOCK.create());
 		addButton.addClickListener(e-> {
-			if(userPublikController.createOrUpdateUser(u.getLogin())) {
+			if(userPublikController.createOrUpdateUser(u.getLogin(), true)) {
 				Optional<UserHis> uh=userHisService.find(u.getLogin());
 				usersGrid.getDataProvider().refreshItem(uh.get());
 				Notification.show(getTranslation("users.add.ok.notif", LocalTime.now()));
@@ -222,7 +222,8 @@ public class UsersView extends VerticalLayout implements HasDynamicTitle, HasHea
 				Notification.show(getTranslation("users.add.ko.notif", LocalTime.now()));
 			}	
 		});
-		addButton.setVisible(u.getDatSup()!=null);
+		//addButton.setVisible(u.getDatSup()!=null);
+		addButton.setVisible(true);
 		detailLayout.add(addButton);
 
 		return detailLayout;
@@ -271,7 +272,7 @@ public class UsersView extends VerticalLayout implements HasDynamicTitle, HasHea
 		importButton.setIcon(VaadinIcon.PLUS.create());
 		importButton.setVisible(false);
 		importButton.addClickListener(e-> {
-			userPublikController.createOrUpdateUser(champRecherche.getValue());
+			userPublikController.createOrUpdateUser(champRecherche.getValue(), false);
 			updateUsers(champRecherche.getValue());
 		});
 		buttonsLayout.add(importButton);
