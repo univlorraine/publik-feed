@@ -79,7 +79,7 @@
 	<distributionManagement>
 		<repository>
 			<id>ul-releases</id>
-			<url>http://maven.univ-lorraine.fr/content/repositories/releases</url>
+			<url>https://maven.univ-lorraine.fr/content/repositories/releases</url>
 		</repository>
 	</distributionManagement>
 
