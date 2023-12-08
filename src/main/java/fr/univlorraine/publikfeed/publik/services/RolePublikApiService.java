@@ -242,23 +242,24 @@ public class RolePublikApiService {
 
 		rt.getInterceptors().add(new BasicAuthenticationInterceptor(apiUsername, apiPassword));
 
-		//Appelle du WS qui créé le role Publik
-		@SuppressWarnings("unchecked")
-		ResponseEntity<String> response = rt.exchange(purl, HttpMethod.PUT, Utils.createRequest(users, graviteeHeader, graviteeKey), String.class, params);
 
-		log.info("Publik Response :" + response);
+		try {
+			//Appelle du WS qui créé le role Publik
+			@SuppressWarnings("unchecked")
+			ResponseEntity<String> response = rt.exchange(purl, HttpMethod.PUT, Utils.createRequest(users, graviteeHeader, graviteeKey), String.class, params);
 
-		//Si on a eu une réponse
-		if (response != null && response.getBody()!=null) {
-			ObjectMapper objectMapper = new ObjectMapper();
-			AddUserToRoleResponsePublikApi autrrpa;
-			try {
+			log.info("Publik Response :" + response);
+
+			//Si on a eu une réponse
+			if (response != null && response.getBody()!=null) {
+				ObjectMapper objectMapper = new ObjectMapper();
+				AddUserToRoleResponsePublikApi autrrpa;
 				autrrpa = objectMapper.readValue(response.getBody(), AddUserToRoleResponsePublikApi.class);
 				return autrrpa;
-			} catch (Exception e) {
-				log.warn("Erreur lors du traitement qui fixe les utilisateurs du role "+roleUuid, e);
-			} 
-		}
+			}
+		} catch (Exception e) {
+			log.warn("Erreur lors du traitement qui fixe les utilisateurs du role "+roleUuid, e);
+		} 
 		return null;
 
 	}
