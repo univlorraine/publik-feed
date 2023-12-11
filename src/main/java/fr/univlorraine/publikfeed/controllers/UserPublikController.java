@@ -118,6 +118,7 @@ public class UserPublikController {
 
 		// Conversion du compte en donnée JSON à envoyer à Publik
 		UserJson userLdap = Utils.getUserJson(p);
+		boolean forceUpdate = false;
 
 		log.debug("modifytimestamp de {} : {}",p.getUid(), p.getModifyTimestamp());
 
@@ -127,13 +128,17 @@ public class UserPublikController {
 		// Si le user n'est pas dans la base ou si on ne l'a pas déjà traité depuis sa dernière maj ldap
 		if(force || !ouh.isPresent() || ouh.get().getDatMaj()==null || p.getModifyTimestamp()==null || ouh.get().getDatMaj().isBefore(Utils.getDateFromLdap(p.getModifyTimestamp()))) {
 			// Si on a aucune entrée en base
-			if(!ouh.isPresent()) {
-				log.info("{} non present en base", p.getUid());
-				// On regarde si il existe déjà dans publik
-				UserPublikApi userPublik = userPublikApiService.getUserByUsername(p.getEduPersonPrincipalName());
+			//if(!ouh.isPresent()) {
+			log.info("On regarde si {} existe dans publik", p.getUid());
+			// On regarde si il existe déjà dans publik
+			UserPublikApi userPublik = userPublikApiService.getUserByUsername(p.getEduPersonPrincipalName());
 
-				if(userPublik !=null) {
-					log.info("{} present dans Publik", p.getUid());
+			if(userPublik == null) {
+				log.info("{} non present dans Publik", p.getUid());
+			} else {
+				log.info("{} present dans Publik", p.getUid());
+				if(!ouh.isPresent()) {
+					log.info("{} non present en base", p.getUid());
 					// On créé le user dans la base
 					UserHis newUser = new UserHis();
 					newUser.setUuid(userPublik.getUuid());
@@ -142,14 +147,26 @@ public class UserPublikController {
 					// On pousse le user dans l'optional
 					ouh = Optional.of(newUser);
 				} else {
-					log.info("{} non present dans Publik", p.getUid());
+					// Si l'uuid n'est pas celui présent dans Publik
+					if(!userPublik.getUuid().equals(ouh.get().getUuid())) {
+						log.info("/!\\ Desynchro de UUID pour {} !!!!", p.getUid());
+						log.info("{} -> {}", ouh.get().getUuid(), userPublik.getUuid());
+						// maj de l'uuid
+						UserHis updatedUser = ouh.get();
+						updatedUser.setUuid(userPublik.getUuid());
+						updatedUser.setDatSup(null);
+						updatedUser.setDatMaj(LocalDateTime.now());
+						updatedUser = userHisService.save(updatedUser);
+						ouh = Optional.of(updatedUser);
+						log.info("UUID de {} a bien été corrigé en base -> {}", p.getUid(), ouh.get().getUuid());
+						// On force le refresh des données car on n'a pas la version Publik en base
+						forceUpdate = true;
+					}
 				}
-			} else {
-				log.info("{} present en base", p.getUid());
 			}
 
 			// Si on a toujours aucune entrée en base ou qu'il est supprimé dans publik
-			if(!ouh.isPresent() || ouh.get().getDatSup()!=null) {
+			if(!ouh.isPresent() || ouh.get().getDatSup() != null) {
 				log.info("Le compte {} doit etre créé dans Publik",p.getUid());
 				// créer le user dans Publik
 				UserPublikApi response = userPublikApiService.createUser(userLdap);
@@ -186,7 +203,7 @@ public class UserPublikController {
 					userToUpdate = !userLdap.equals(userBdd);
 				}
 
-				if(userToUpdate) {
+				if(userToUpdate || forceUpdate) {
 
 					log.info("Le compte {} doit etre mis a jour dans Publik",p.getUid());
 					// maj le user dans Publik
@@ -202,7 +219,9 @@ public class UserPublikController {
 						} catch (JsonProcessingException e) {
 							log.warn("Probleme a la serialiazation JSON de :"+userLdap,e);
 						}
+						user.setDatSup(null);
 						user.setDatMaj(LocalDateTime.now());
+
 						//Maj bdd
 						user = userHisService.save(user);
 						log.info("Le compte {} a été mis a jour dans la base",p.getUid());
@@ -382,7 +401,7 @@ public class UserPublikController {
 		// Si on a l'uuid publik 
 		if(StringUtils.hasText(user.getUuid()) ) {
 			UserPublikApi  userPublik = userPublikApiService.getUserByUuid(user.getUuid());
-			
+
 			// Si le user n'est plus dans publik ou si la suppression du user dans publik s'est bien passée
 			if(userPublik == null || userPublikApiService.deleteUser(user.getUuid())) {
 

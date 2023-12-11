@@ -56,6 +56,7 @@ import fr.univlorraine.publikfeed.ldap.entity.PeopleLdap;
 import fr.univlorraine.publikfeed.ldap.services.LdapGenericService;
 import fr.univlorraine.publikfeed.model.app.entity.RoleManuel;
 import fr.univlorraine.publikfeed.model.app.entity.RoleResp;
+import fr.univlorraine.publikfeed.model.app.entity.UserHis;
 import fr.univlorraine.publikfeed.model.app.services.RoleManuelService;
 import fr.univlorraine.publikfeed.model.app.services.RoleRespService;
 import fr.univlorraine.publikfeed.model.app.services.UserHisService;
@@ -168,11 +169,13 @@ public class RolePublikController {
 			if(lp!=null && !lp.isEmpty()) {
 				for(PeopleLdap p : lp) {
 					//recuperation du uuid
-					String uuid = userHisService.getUuidFromLogin(p.getUid());
-					// Si la personne n'est pas déjà dans Publik
-					if(uuid == null)  {
-						// Création de la personne
-						if(userPublikController.createOrUpdateUser(p.getUid(), false)) {
+					Optional<UserHis> u = userHisService.find(p.getUid());
+
+					String uuid = u.isPresent() ? u.get().getUuid() : null;
+					// Si la personne n'est pas déjà dans Publik ou supprimée 
+					if(uuid == null ||	(u.isPresent() && u.get().getDatSup() != null)) {
+						// Création/maj de la personne
+						if(userPublikController.createOrUpdateUser(p.getUid(), true)) {
 							uuid = userHisService.getUuidFromLogin(p.getUid());
 						}
 					}
