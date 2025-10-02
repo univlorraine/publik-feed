@@ -59,7 +59,7 @@ public class UserPublikApi {
     private Boolean is_staff;
     private Boolean is_active;
     private String modified;
-    private Boolean last_account_deletion_alert;
+    //private String last_account_deletion_alert;
     private Boolean deleted;
     private Boolean deactivation;
     private String deactivation_reason;
