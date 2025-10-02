@@ -37,6 +37,8 @@
 package fr.univlorraine.publikfeed.job;
 
 
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.annotation.Resource;
@@ -60,6 +62,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class SupprUsersSyncJob {
 
+
+	private static final String DELETE_ALL_USERS = "deleteAllUsers";
 
 	@Value("${filtre.userssyncjob}")
 	private transient String filtreSyncUser;
@@ -95,6 +99,8 @@ public class SupprUsersSyncJob {
 				// Ajout timestamp du start dans la base
 				ProcessHis process = processHisService.getNewProcess(JobUtils.SYNC_SUPPR_USERS_JOB);
 
+				boolean deleteAll = filtreSyncUser.contains(DELETE_ALL_USERS);
+
 				// Récupération des users
 				List<UserHis> listLoginBdd = userHisService.findAllActiv();
 				log.info(" {} users actifs dans Publik-feed", listLoginBdd !=null ?listLoginBdd.size() : 0);
@@ -105,14 +111,14 @@ public class SupprUsersSyncJob {
 
 					// Execution du filtre ldap
 					try {
-						log.info("execution du filtre ldap {} ...", filtre);
-						List<PeopleLdap> lp = ldapPeopleService.findEntitiesByFilter(filtre);
+						log.info("execution du filtre ldap {} ...", deleteAll ? "aucun" : filtre);
+						List<PeopleLdap> lp = deleteAll ? new ArrayList<>() : ldapPeopleService.findEntitiesByFilter(filtre);
 
-						if(lp!=null && !lp.isEmpty()) {
+						if ((lp!=null && !lp.isEmpty()) || deleteAll) {
 							log.info("{} comptes ldap", lp.size());
 							List<String> listLoginLdap = Utils.listPeopleToListLogin(lp);
 							log.info("{} logins", listLoginLdap.size());
-							lp=null;
+							lp.clear();
 							process.setNbObjTotal(listLoginBdd.size());
 							process.setNbObjTraite(0);
 							process.setNbObjErreur(0);
